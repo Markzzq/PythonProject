@@ -45,7 +45,7 @@ if __name__ == '__main__':
             adjustflag：复权类型，默认不复权：3；1：后复权；2：前复权。已支持分钟线、日线、周线、月线前后复权。
             """
             rs = bs.query_history_k_data_plus(row_code,
-                                              "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
+                                              "date,code,open,high,low,close,volume,amount,adjustflag,turn,pctChg",
                                               start_date=START_DATE, end_date=END_DATE,
                                               frequency="w", adjustflag="2")
             #### 打印结果集 ####
@@ -58,14 +58,14 @@ if __name__ == '__main__':
             N = result.shape[0]
 
             # 移除停牌股票
-            if result['tradestatus'][N-1] == '0':
-                print('停牌   out ')
-                continue
+            # if result['tradestatus'][N-1] == '0':
+            #     print('停牌   out ')
+            #     continue
 
             # 移除st 股票
-            if result['isST'][N-1] == '1':
-                print('ST   out ')
-                continue
+            # if result['isST'][N-1] == '1':
+            #     print('ST   out ')
+            #     continue
 
             # 移除科创板股票
             if row['代码'][2:5] == '688':
@@ -96,7 +96,7 @@ if __name__ == '__main__':
                 var1 = True
 
             # macd 趋势向上
-            if macd10 > 0 and macd[N - 1] > macd[N - 2] and macd[N - 2] > macd[N - 3] and macd[N - 3] > macd[N - 4]:
+            if macd10 < 0 and macd[N - 1] > macd[N - 2] and macd[N - 2] > macd[N - 3] and macd[N - 3] > macd[N - 4]:
                 var2 = True
 
             # dif 趋势向上
@@ -112,10 +112,8 @@ if __name__ == '__main__':
 
 
 
-            varAll = var1
-            # v1 = calMACD(result, N)
-            #
-            # vt = v1
+            varAll = var1 and var2 and var3 and var5
+
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name,'OPEN': result['open'][N-1], 'CLOSE': result['close'][N-1], 'pctChg': result['pctChg'][N-1]}

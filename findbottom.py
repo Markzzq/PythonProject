@@ -11,6 +11,15 @@ from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpq
 
 import baostock as bs
 
+# plotly express   一种滑动窗口绘图库
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+
+# matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
 START_DATE = '2025-03-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 Cd = 1.02
@@ -46,12 +55,6 @@ if __name__ == '__main__':
     for row_index, row in df_stock.iterrows():
         try:
             #time.sleep(0.5)
-
-            # 方法一
-            #row_code = row['代码']  # get_price 也是带字母
-            # 方法二
-            # row_code = row['代码'][2:]  # 是因为抓到的数据带了字母 只取数字
-
 
             # 方法三
             row_code = row['代码'][:2] + "." +  row['代码'][2:]
@@ -135,8 +138,8 @@ if __name__ == '__main__':
             # and ma30 > Cd * ma60:
                 var1 = True
 
-            # macd 趋势向上
-            if macd20 > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
+            # macd 在0线下 但趋势向上
+            if macd20 < 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
                 var2 = True
 
             # dif 趋势向上
@@ -165,21 +168,42 @@ if __name__ == '__main__':
                 var8 = True
 
 
-
-
-            varAll = var1 and var2 and var3 and var4 and var5 and var6
-
-            #varAll = var1 and var2 and var3 and var5 and var4
-
-            #varAll = var1
+            varAll = var2 and var7
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name,'OPEN': result['open'][N-1], 'CLOSE': result['close'][N-1], 'pctChg': result['pctChg'][N-1]}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
-                print('success add one', "代码", row['代码'][2:])
-                #print(mid)
-                print(slope)
+                print('success add one', row['代码'][2:], row_name)
+
+                hkmi = ak.fund_etf_hist_sina(symbol=row['代码'])
+
+                # # 打开在网页端
+                # fig = px.line(result, x="date", y="close", title=row['代码'][2:])
+                # fig.add_trace(go.Scatter(x=[result['date'].iloc[-1]],
+                #                          y=[result['close'].iloc[-1]],
+                #                          text=[result['date'].iloc[-1]],
+                #                          mode='markers+text',
+                #                          marker=dict(color='red', size=10),
+                #                          textfont=dict(color='green', size=10),
+                #                          textposition='top left',
+                #                          showlegend=False))
+                # fig.show()
+
+
+                # 保存日k图
+                # plt.figure(figsize=(10, 10))
+                # plt.plot(hkmi['date'], hkmi['close'])
+                # plt.grid(linewidth=0.5, alpha=0.7)
+                # plt.gcf().autofmt_xdate(rotation=45)
+                # #plt.gca().xaxis.set_major_locator(MultipleLocator(len(hkmi['close']) / 500))  # 日期最多显示500个
+                # plt.title(row['代码'][2:], fontsize=20)
+                # plt.show()
+                #
+                #
+                # file_name = f"{END_DATE}_{row['代码'][2:]}.png"
+                # plt.savefig(file_name)
+
 
 
         except:
@@ -187,7 +211,7 @@ if __name__ == '__main__':
 
     print(dfResult)
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_k_data.csv"
+    file_name = f"{END_DATE}_bottom_stock.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
 

@@ -10,6 +10,13 @@ import sys
 import requests
 import akshare as ak
 import schedule
+import datetime
+import time
+
+
+START_DATE = '2025-03-13'
+END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+Cd = 1.02
 
 
 url = "http://api.mairui.club/hsrl/ssjy/000002/b997d4403688d5e66a"
