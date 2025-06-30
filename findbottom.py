@@ -46,10 +46,12 @@ if __name__ == '__main__':
 
     lg = bs.login()
 
+    start_time = time.time()
+
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    anyData = {'stock': '00', 'name': 'name','OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg'}
+    anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn'}
     dfResult = pd.DataFrame(anyData, index=[0])
 
     for row_index, row in df_stock.iterrows():
@@ -132,29 +134,28 @@ if __name__ == '__main__':
             var6 = False
             var7 = False
             var8 = False
+            var9 = False
+
 
             # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
-            if ma5 > Cd * ma10 and ma10 > Cd * ma20 and ma20 > Cd * ma30 and ma30 > ma60:
-            # and ma30 > Cd * ma60:
+            if ma5 > ma10:
                 var1 = True
 
             # macd 在0线下 但趋势向上
-            if macd20 < 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
+            if macd[N - 1] > macd[N - 2] and macd[N - 2] > macd[N - 3] and macd[N - 3] > macd[N - 4]:
                 var2 = True
 
             # dif 趋势向上
-            if dif[N - 1] > 0 and dif[N - 1] > dif[N - 2] and dif[N - 2] > dif[N - 3] and dif[N - 3] > dif[N - 4]:
+            if dif[N - 1] > dif[N - 2] and dif[N - 2] > dif[N - 3] and dif[N - 3] > dif[N - 4]:
                 var3 = True
 
             if dif[N - 1] > 0 and dea[N - 1] > 0:
                 var4 = True
 
             # dea 趋势向上
-            if dea[N - 1] > 0 and dea[N - 1] > dea[N - 2] and dea[N - 2] > dea[N - 3] and dea[N - 3] > dea[N - 4]:
+            if dea[N - 1] > dea[N - 2] and dea[N - 2] > dea[N - 3] and dea[N - 3] > dea[N - 4]:
                 var5 = True
 
-
-            # if mid[N-1] > mid[N-2] and  mid[N-2] > mid[N-2]
 
             # Using zip() and all() to Check for strictly increasing list
             # 判断布林中轨趋势递增 连续5日
@@ -164,14 +165,18 @@ if __name__ == '__main__':
             if J[N-1] > K[N-1] and K[N-1] > D[N-1]:
                 var7 = True
 
-            if J[N-1] > J[N-2] and J[N-2] > J[N-3]:
+            if J[N-1] > J[N-2] and J[N-2] > J[N-3] and J[N-3] > J[N-4]:
                 var8 = True
 
+            if J[N-1] < 85:
+                var9 = True
 
-            varAll = var2 and var7
+
+            varAll = var1 and var2 and var3 and var5 and var7 and var8 and var9
 
             if varAll:
-                anyData = {'stock': row['代码'], 'name': row_name,'OPEN': result['open'][N-1], 'CLOSE': result['close'][N-1], 'pctChg': result['pctChg'][N-1]}
+                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],
+                           'CLOSE': result['close'][N - 1], 'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1]}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
@@ -217,3 +222,6 @@ if __name__ == '__main__':
 
     #### 登出系统 ####
     bs.logout()
+
+    end_time = time.time()
+    print(f"findbottom运行时间：{end_time - start_time}秒")

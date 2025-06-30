@@ -13,4 +13,5 @@
 - 寻找0线以下筑底的股票  findbottom.py   搜出的结果是 bottom_data
 - 更新数据集  updataData.py
 - 板块分析 分析哪个行业热度比较高  有走强的趋势  bankuaifenxi.py
-- etf分析 对应etf 的走势展现出来  etf.py 
+- etf分析 对应etf 的走势展现出来  etf.py
+

@@ -13,7 +13,8 @@ import baostock as bs
 
 START_DATE = '2025-03-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-Cd = 1.02
+C1 = 1.02
+C2 = 1.01
 
 
 def calKDJ(df):
@@ -37,10 +38,12 @@ if __name__ == '__main__':
 
     lg = bs.login()
 
+    start_time = time.time()
+
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    anyData = {'stock': '00', 'name': 'name','OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg'}
+    anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn'}
     dfResult = pd.DataFrame(anyData, index=[0])
 
     for row_index, row in df_stock.iterrows():
@@ -115,10 +118,9 @@ if __name__ == '__main__':
             # 初级数据  布林中轨曲线
             up, mid, down = BOLL(CLOSE)
 
-            x = np.array([1, 2, 3, 4, 5])
-            y = np.array(mid[N-6:N-1])
-            slope, intercept = np.polyfit(x, y, 1)
-            #print(slope)
+            # x = np.array([1, 2, 3, 4, 5])
+            # y = np.array(mid[N-6:N-1])
+            # slope, intercept = np.polyfit(x, y, 1)
 
 
             var1 = False
@@ -131,7 +133,7 @@ if __name__ == '__main__':
             var8 = False
 
             # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
-            if ma5 > Cd * ma10 and ma10 > Cd * ma20 and ma20 > Cd * ma30 and ma30 > ma60:
+            if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30 and ma30 > ma60:
             # and ma30 > Cd * ma60:
                 var1 = True
 
@@ -158,28 +160,30 @@ if __name__ == '__main__':
             var6 = all(i < j for i, j in zip(mid[N-6:N-1], mid[N-6:N-1][1:]))
 
             # 判断KDJ 指标变化
-            if J[N-1] > K[N-1] and K[N-1] > D[N-1]:
+            if D[N - 1] > D[N - 2] and D[N - 2] > D[N - 3]:
                 var7 = True
 
-            if J[N-1] > J[N-2] and J[N-2] > J[N-3]:
+            turnrate = float(result['turn'][N-1])
+            if turnrate > 5:
                 var8 = True
 
 
+            # 短线指标CCI
 
 
-            varAll = var1 and var2 and var3 and var4 and var5 and var6
+
+            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8
 
             #varAll = var1 and var2 and var3 and var5 and var4
 
             #varAll = var1
 
             if varAll:
-                anyData = {'stock': row['代码'], 'name': row_name,'OPEN': result['open'][N-1], 'CLOSE': result['close'][N-1], 'pctChg': result['pctChg'][N-1]}
+                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],
+                           'CLOSE': result['close'][N - 1], 'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1]}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
-                print('success add one', "代码", row['代码'][2:])
-                #print(mid)
-                print(slope)
+                print('success add one', row['代码'][2:], row_name)
 
 
         except:
@@ -193,3 +197,6 @@ if __name__ == '__main__':
 
     #### 登出系统 ####
     bs.logout()
+
+    end_time = time.time()
+    print(f"dailyreview运行时间：{end_time - start_time}秒")

@@ -4,15 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="init">
-      <change afterPath="$PROJECT_DIR$/bankuaifenxi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/findbottom.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件">
+      <change afterPath="$PROJECT_DIR$/conceptdayreview.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/conceptreview.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dailyreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/dailyreview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf.py" beforeDir="false" afterPath="$PROJECT_DIR$/etf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weekreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/weekreview.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findbottom.py" beforeDir="false" afterPath="$PROJECT_DIR$/findbottom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/updateData.py" beforeDir="false" afterPath="$PROJECT_DIR$/updateData.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,7 +63,9 @@
     "Python.bankuaifenxi.executor": "Debug",
     "Python.baostock.executor": "Debug",
     "Python.bstock.executor": "Run",
-    "Python.dailyreview.executor": "Debug",
+    "Python.conceptdayreview.executor": "Debug",
+    "Python.conceptreview.executor": "Debug",
+    "Python.dailyreview.executor": "Run",
     "Python.etf.executor": "Debug",
     "Python.findbottom.executor": "Debug",
     "Python.findcross.executor": "Debug",
@@ -70,10 +73,12 @@
     "Python.quant.executor": "Run",
     "Python.quicksearch.executor": "Debug",
     "Python.te.executor": "Debug",
-    "Python.test.executor": "Debug",
+    "Python.test.executor": "Run",
+    "Python.updateData.executor": "Debug",
     "Python.weekreview.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "C:\\Users\\zhuziqian\\AppData\\Roaming\\JetBrains\\PyCharmCE2025.1\\plugins\\Shell Script\\shellcheck.exe",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/zhuziqian/PycharmProjects/PythonProject",
@@ -141,11 +146,31 @@
       <option name="project" value="LOCAL" />
       <updated>1749889677157</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件">
+      <option name="closed" value="true" />
+      <created>1750346369298</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1750346369298</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件" />
+    <option name="LAST_COMMIT_MESSAGE" value="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/conceptreview.py</url>
+          <line>89</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
