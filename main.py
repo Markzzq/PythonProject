@@ -8,15 +8,34 @@
 import math
 import sys
 import requests
-import akshare as ak
 import schedule
 import datetime
 import time
 
+import akshare as ak
+import numpy as np
+import pandas as pd
+import baostock as bs
+
+# 股市行情数据获取和作图 -2
+from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
+from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
+
+
+# plotly   一种滑动窗口绘图库
+import plotly.express as px
+import plotly.graph_objects as go
+from numba.core.typing.typeof import typeof_numpy_random_bitgen
+
+# -------------------------作图显示-----------------------------------------------------------------
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
+
 
 START_DATE = '2025-03-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-Cd = 1.02
+Cd = 1.0
 
 
 url = "http://api.mairui.club/hsrl/ssjy/000002/b997d4403688d5e66a"
@@ -29,10 +48,6 @@ o代表：开盘价（元），pe代表：市盈率（动态，总市值除以�
 pc代表：涨跌幅（%），p代表：当前价格（元），sz代表：总市值（元），cje代表：成交额（元），ud代表：涨跌额（元），v代表：成交量（手），
 yc代表：昨日收盘价（元），zf代表：振幅（%），zs代表：涨速（%），sjl代表：市净率，zdf60代表：60日涨跌幅（%），zdfnc代表：年初至今涨跌幅（%），t代表：更新时间YYYY-MM-DD HH:MM
 """
-
-# 股市行情数据获取和作图 -2
-from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
-from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
 
 # 证券代码兼容多种格式 通达信，同花顺，聚宽
 # sh000001 (000001.XSHG)    sz399006 (399006.XSHE)   sh600519 ( 600519.XSHG )
@@ -51,9 +66,7 @@ MA10 = MA(CLOSE, 10)  # 获取10日均线序列
 up, mid, lower = BOLL(CLOSE)  # 获取布林带指标数据
 dif, dea, macd = MACD(CLOSE)  # 获取macd指标
 
-# -------------------------作图显示-----------------------------------------------------------------
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
+
 
 plt.figure(figsize=(15, 8))
 plt.plot(CLOSE, label='SHZS');

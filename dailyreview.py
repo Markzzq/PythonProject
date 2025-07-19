@@ -5,10 +5,9 @@ import datetime
 import time
 import schedule
 
-# 股市行情数据获取和作图 -2
+# 股市行情数据获取
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
-
 import baostock as bs
 
 START_DATE = '2025-03-13'
@@ -33,31 +32,21 @@ def calKDJ(df):
     return df['k'], df['d'], df['j']
 
 
-
-if __name__ == '__main__':
-
-    lg = bs.login()
-
+# 均线多头策略
+def findGoodTrend():
     start_time = time.time()
 
+    # 读取股票列表
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn', 'bias': 'ma5bias'}
-    # dfResult = pd.DataFrame(anyData, index=[0])
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
 
+    # 登陆baostock开源库
+    lg = bs.login()
 
     for row_index, row in df_stock.iterrows():
         try:
-            #time.sleep(0.5)
-
-            # 方法一
-            #row_code = row['代码']  # get_price 也是带字母
-            # 方法二
-            # row_code = row['代码'][2:]  # 是因为抓到的数据带了字母 只取数字
-
-
             # 方法三
             row_code = row['代码'][:2] + "." +  row['代码'][2:]
             row_name = row['名称']
@@ -95,10 +84,6 @@ if __name__ == '__main__':
                 #print('688   out ')
                 continue
 
-
-            K, D , J = calKDJ(result)
-
-
             # 计算初级数据  均线策略因子
             CLOSE = result['close']
             MA5 = MA(CLOSE, 5)  # 获取5日均线序列
@@ -123,6 +108,11 @@ if __name__ == '__main__':
             # x = np.array([1, 2, 3, 4, 5])
             # y = np.array(mid[N-6:N-1])
             # slope, intercept = np.polyfit(x, y, 1)
+
+            # 计算kdj
+            K, D , J = calKDJ(result)
+
+            # 短线指标CCI
 
 
             var1 = False
@@ -169,18 +159,12 @@ if __name__ == '__main__':
                 var8 = True
 
 
-            # 短线指标CCI
 
-
-
+            ## 其他数据
             # 计算偏离5日线的百分比
             bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
 
             varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8
-
-            #varAll = var1 and var2 and var3 and var5 and var4
-
-            #varAll = var1
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],
@@ -194,6 +178,7 @@ if __name__ == '__main__':
             continue
 
     print(dfResult)
+
     #### 结果集输出到csv文件 ####
     file_name = f"{END_DATE}_k_data.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
@@ -203,4 +188,17 @@ if __name__ == '__main__':
     bs.logout()
 
     end_time = time.time()
-    print(f"dailyreview运行时间：{end_time - start_time}秒")
+    print(f"findGoodTrend 运行时间：{end_time - start_time} 秒")
+
+
+
+if __name__ == '__main__':
+
+    findGoodTrend()
+
+
+
+
+
+
+

@@ -5,20 +5,11 @@ import datetime
 import time
 import schedule
 
-# 股市行情数据获取和作图 -2
+# 股市行情数据获取
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
-
 import baostock as bs
 
-# plotly express   一种滑动窗口绘图库
-import plotly.express as px
-import plotly.graph_objects as go
-import plotly.io as pio
-
-# matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 
 START_DATE = '2025-03-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -41,25 +32,21 @@ def calKDJ(df):
     return df['k'], df['d'], df['j']
 
 
-
-if __name__ == '__main__':
-
-    lg = bs.login()
-
+# 底部反弹筛选
+def findBottom():
     start_time = time.time()
 
+    # 读取股票列表
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn'}
-    # dfResult = pd.DataFrame(anyData, index=[0])
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn'])
 
+    # 登陆baostock开源库
+    lg = bs.login()
 
     for row_index, row in df_stock.iterrows():
         try:
-            #time.sleep(0.5)
-
             # 方法三
             row_code = row['代码'][:2] + "." +  row['代码'][2:]
             row_name = row['名称']
@@ -98,9 +85,6 @@ if __name__ == '__main__':
                 continue
 
 
-            K, D , J = calKDJ(result)
-
-
             # 计算初级数据  均线策略因子
             CLOSE = result['close']
             MA5 = MA(CLOSE, 5)  # 获取5日均线序列
@@ -127,6 +111,10 @@ if __name__ == '__main__':
             slope, intercept = np.polyfit(x, y, 1)
             #print(slope)
 
+            # 计算kdj
+            K, D , J = calKDJ(result)
+
+            # 短线指标CCI
 
             var1 = False
             var2 = False
@@ -187,40 +175,11 @@ if __name__ == '__main__':
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
 
-                hkmi = ak.fund_etf_hist_sina(symbol=row['代码'])
-
-                # # 打开在网页端
-                # fig = px.line(result, x="date", y="close", title=row['代码'][2:])
-                # fig.add_trace(go.Scatter(x=[result['date'].iloc[-1]],
-                #                          y=[result['close'].iloc[-1]],
-                #                          text=[result['date'].iloc[-1]],
-                #                          mode='markers+text',
-                #                          marker=dict(color='red', size=10),
-                #                          textfont=dict(color='green', size=10),
-                #                          textposition='top left',
-                #                          showlegend=False))
-                # fig.show()
-
-
-                # 保存日k图
-                # plt.figure(figsize=(10, 10))
-                # plt.plot(hkmi['date'], hkmi['close'])
-                # plt.grid(linewidth=0.5, alpha=0.7)
-                # plt.gcf().autofmt_xdate(rotation=45)
-                # #plt.gca().xaxis.set_major_locator(MultipleLocator(len(hkmi['close']) / 500))  # 日期最多显示500个
-                # plt.title(row['代码'][2:], fontsize=20)
-                # plt.show()
-                #
-                #
-                # file_name = f"{END_DATE}_{row['代码'][2:]}.png"
-                # plt.savefig(file_name)
-
-
-
         except:
             continue
 
     print(dfResult)
+
     #### 结果集输出到csv文件 ####
     file_name = f"{END_DATE}_bottom_stock.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
@@ -230,4 +189,12 @@ if __name__ == '__main__':
     bs.logout()
 
     end_time = time.time()
-    print(f"findbottom运行时间：{end_time - start_time}秒")
+    print(f"findBottom 运行时间：{end_time - start_time} 秒")
+
+
+if __name__ == '__main__':
+
+    findBottom()
+
+
+

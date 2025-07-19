@@ -1,21 +1,35 @@
-记录一些常用的文件库及文件作用
+# 常用文件库及功能说明
 
-开源库
-- Ashare    akshare 开源库调用   
-- bstock    baostock 开源库  需要 进行登录 推出   
-- myTT      用于计算一些简单的技术指标    MyTT
+## 运行脚本
+- **每日分析**  
+  `run.py`多线程脚本运行每日分析
 
-回测模块
-- pybroker 一个用于回测策略的库    PBroker
+## 开源库
+- **Ashare**  
+  `Ashare.py`开源库调用接口
+- **baostock**  
+  `bstock.py`开源库调用（需登录/退出操作）
+- **myTT**  
+  `MyTT.py`技术指标计算工具（基于MyTT）
 
-基础功能
-- 寻找趋势股 dailyreview.py  搜出的结果是 k_data
-- 寻找0线以下筑底的股票  findbottom.py   搜出的结果是 bottom_data
-- 更新数据集  updataData.py
-- 板块分析 分析哪个行业热度比较高  有走强的趋势  bankuaifenxi.py
-- etf.py    etf分析 对应etf 的走势展现出来   或者是搜索符合要求的基金 
+## 回测模块
+- **pybroker回测模块**  
+  `PBroker.py`策略回测框架（PBroker）
 
-数据集
-- sina_etf_list    基金列表
-- stock_zh_list    股票列表
-- 
+## 基础功能
+- **趋势股筛选**  
+  `dailyreview.py` → 输出结果: `k_data`
+- **反弹筑底股票筛选**  
+  `findbottom.py` → 输出结果: `bottom_data`（寻找0线以下筑底股）
+- **数据更新**  
+  `updataData.py` → 数据集更新
+- **板块热度分析**  
+  `bankuaifenxi.py` → 行业强度趋势分析
+- **ETF分析**  
+  `etf.py` → 基金走势展示/条件筛选 → 输出结果: `findGoodETF`(优质etf)
+
+## 数据集
+- **sina_etf_list**  
+  基金列表数据
+- **stock_zh_list**  
+  A股股票列表数据
