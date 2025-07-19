@@ -51,8 +51,10 @@ if __name__ == '__main__':
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn'}
-    dfResult = pd.DataFrame(anyData, index=[0])
+    # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn'}
+    # dfResult = pd.DataFrame(anyData, index=[0])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn'])
+
 
     for row_index, row in df_stock.iterrows():
         try:
@@ -135,6 +137,7 @@ if __name__ == '__main__':
             var7 = False
             var8 = False
             var9 = False
+            var10 = False
 
 
             # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
@@ -149,13 +152,12 @@ if __name__ == '__main__':
             if dif[N - 1] > dif[N - 2] and dif[N - 2] > dif[N - 3] and dif[N - 3] > dif[N - 4]:
                 var3 = True
 
-            if dif[N - 1] > 0 and dea[N - 1] > 0:
-                var4 = True
-
             # dea 趋势向上
             if dea[N - 1] > dea[N - 2] and dea[N - 2] > dea[N - 3] and dea[N - 3] > dea[N - 4]:
-                var5 = True
+                var4 = True
 
+            if dif[N - 1] > 0:   ##dif 已经向上穿越了
+                var5 = True
 
             # Using zip() and all() to Check for strictly increasing list
             # 判断布林中轨趋势递增 连续5日
@@ -171,8 +173,12 @@ if __name__ == '__main__':
             if J[N-1] < 85:
                 var9 = True
 
+            turnrate = float(result['turn'][N-1])
+            if turnrate > 3:
+                var10 = True
 
-            varAll = var1 and var2 and var3 and var5 and var7 and var8 and var9
+
+            varAll = var1 and var2 and var3 and var4 and var7 and var8 and var9 and var10
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],

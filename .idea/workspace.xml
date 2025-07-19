@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件">
-      <change afterPath="$PROJECT_DIR$/conceptdayreview.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/conceptreview.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="20250629 update&#10;&#10;更新了一些新模块&#10;添加了板块分析&#10;引入了新的因子">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dailyreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/dailyreview.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/etf.py" beforeDir="false" afterPath="$PROJECT_DIR$/etf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/findbottom.py" beforeDir="false" afterPath="$PROJECT_DIR$/findbottom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/quicksearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/quicksearch.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/updateData.py" beforeDir="false" afterPath="$PROJECT_DIR$/updateData.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,9 +62,9 @@
     "Python.bstock.executor": "Run",
     "Python.conceptdayreview.executor": "Debug",
     "Python.conceptreview.executor": "Debug",
-    "Python.dailyreview.executor": "Run",
-    "Python.etf.executor": "Debug",
-    "Python.findbottom.executor": "Debug",
+    "Python.dailyreview.executor": "Debug",
+    "Python.etf.executor": "Run",
+    "Python.findbottom.executor": "Run",
     "Python.findcross.executor": "Debug",
     "Python.main.executor": "Debug",
     "Python.quant.executor": "Run",
@@ -154,13 +151,22 @@
       <option name="project" value="LOCAL" />
       <updated>1750346369298</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="20250629 update&#10;&#10;更新了一些新模块&#10;添加了板块分析&#10;引入了新的因子">
+      <option name="closed" value="true" />
+      <created>1751275236277</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1751275236277</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
     <MESSAGE value="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件" />
-    <option name="LAST_COMMIT_MESSAGE" value="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件" />
+    <MESSAGE value="20250629 update&#10;&#10;更新了一些新模块&#10;添加了板块分析&#10;引入了新的因子" />
+    <option name="LAST_COMMIT_MESSAGE" value="20250629 update&#10;&#10;更新了一些新模块&#10;添加了板块分析&#10;引入了新的因子" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -16,6 +16,8 @@ def task():
 
     for row_index, row in stock_zh_a_spot_em_df.iterrows():
         try:
+            time.sleep(0.5)
+
             row_code = row['代码']  # 是因为抓到的数据带了字母 只取数字
             row_name = row['名称']
             # 因子1 5分钟涨跌数据
@@ -51,10 +53,10 @@ def task():
         except:
             continue
     print(dfResult)
-    timestamp = datetime.datetime.now()
-    localtime = timestamp.strftime('%Y-%m-%d-%H-%M-%S')
-    filename = f"{localtime}.csv"
-    dfResult.to_csv(filename, encoding='utf-8-sig')
+    # timestamp = datetime.datetime.now()
+    # localtime = timestamp.strftime('%Y-%m-%d-%H-%M-%S')
+    # filename = f"{localtime}.csv"
+    # dfResult.to_csv(filename, encoding='utf-8-sig')
 
 
 
@@ -65,11 +67,11 @@ def task():
 if __name__ == '__main__':
 
     # 读取股票代码列表
-    df_stock_list = pd.read_csv("stock_zh_list.csv")
+    df_stock_list = pd.read_csv("standby_list.csv")
 
     # 取非北交所股票 测试   北交所到265
     # df_stock = stock_zh_a_spot_df[['代码', '名称']][266:350]
-    df_stock = df_stock_list[['代码', '名称']][266:350]
+    df_stock = df_stock_list[['代码', '名称']]
 
     # anydata 是dictionary
     anyData = {'stock': '00', 'name': 'name', '5分钟涨跌': 'var1', '换手率': 'var2', '涨跌幅': 'var3', '量比': 'var4'}
