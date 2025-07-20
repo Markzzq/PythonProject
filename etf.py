@@ -61,6 +61,31 @@ def showOneETF(code, name):
     pio.write_image(fig, "fig.png")
 
 
+# 读取备选列表里的基金并展示出来
+def showAllETF():
+    # 读取ETF列表
+    df_etf_list = pd.read_csv('2025-07-19_topETF.csv')
+    df_etf = df_etf_list[['代码', '名称']]
+
+    for row_index, row in df_etf.iterrows():
+        try:
+            etf_code = row['代码']  # 是因为抓到的数据带了字母 只取数字
+            etf_name = row['名称']
+            hkmi = ak.fund_etf_hist_sina(symbol=etf_code)
+            fig = px.line(hkmi, x="date", y="close", title=etf_name, subtitle=etf_code)
+            fig.add_trace(go.Scatter(x=[hkmi['date'].iloc[-1]],
+                                     y=[hkmi['close'].iloc[-1]],
+                                     text=[hkmi['date'].iloc[-1]],
+                                     mode='markers+text',
+                                     marker=dict(color='red', size=10),
+                                     textfont=dict(color='green', size=10),
+                                     textposition='top left',
+                                     showlegend=False))
+            fig.show()
+        except:
+            continue
+
+
 ## 抓取被低估但最近表现好的基金
 def findGoodETF():
     start_time = time.time()
@@ -139,9 +164,16 @@ def findGoodETF():
     dftop.to_csv(top_name, encoding="utf-8-sig", index=False)
 
 
+
+
+
+
 if __name__ == '__main__':
 
-    showOneETF("sz159695","通信ETF")
+    # showOneETF("sz159695","通信ETF")
+
+    showAllETF()
+
     # findGoodETF()
 
 

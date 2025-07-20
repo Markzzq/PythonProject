@@ -112,6 +112,12 @@ def findGoodTrend():
             # 计算kdj
             K, D , J = calKDJ(result)
 
+            # 量能指标MAVOL
+            VOLUME = result['volume']
+            VOLUME5 = MA(VOLUME, 5)  # 获取5日均线序列
+            VOLUME10 = MA(VOLUME, 10)  # 获取5日均线序列
+
+
             # 短线指标CCI
 
 
@@ -123,6 +129,8 @@ def findGoodTrend():
             var6 = False
             var7 = False
             var8 = False
+            var9 = False
+
 
             # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
             if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30 and ma30 > ma60:
@@ -158,13 +166,15 @@ def findGoodTrend():
             if turnrate > 5:
                 var8 = True
 
-
+            # 量能指标
+            if VOLUME5[N-1] > VOLUME5[N-2] and VOLUME5[N-2] > VOLUME5[N-3] and VOLUME5[N-1] > VOLUME10[N-1]:
+                var9 = True
 
             ## 其他数据
             # 计算偏离5日线的百分比
             bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
 
-            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8
+            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],

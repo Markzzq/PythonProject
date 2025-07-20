@@ -74,9 +74,10 @@ if __name__ == '__main__':
     df_stock = df_stock_list[['代码', '名称']]
 
     # anydata 是dictionary
-    anyData = {'stock': '00', 'name': 'name', '5分钟涨跌': 'var1', '换手率': 'var2', '涨跌幅': 'var3', '量比': 'var4'}
-    dfResult = pd.DataFrame(anyData, index=[0])
+    # anyData = {'stock': '00', 'name': 'name', '5分钟涨跌': 'var1', '换手率': 'var2', '涨跌幅': 'var3', '量比': 'var4'}
+    # dfResult = pd.DataFrame(anyData, index=[0])
 
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', '5分钟涨跌', '换手率', '涨跌幅', '量比'])
 
     # task()
 
