@@ -32,6 +32,20 @@ def calKDJ(df):
     return df['k'], df['d'], df['j']
 
 
+def calOBV(df):
+    # 假设 df 是股票数据，包含 'close'（收盘价）和 'volume'（成交量）
+    # 计算 VA 列
+    M = 30
+    close = df['close'].astype(float)
+    volume = df['volume'].astype(float)
+    low = df['low'].astype(float)
+    high = df['high'].astype(float)
+
+    df['obv'] = (2 * close - low - high) / (high - low) * volume / 10000
+
+    return df['obv']
+
+
 # 底部反弹筛选
 def findBottom():
     start_time = time.time()

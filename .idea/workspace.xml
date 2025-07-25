@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="20250719 update&#10;&#10;更新了etf 板块&#10;增加功能：筛选最近表现不错的etf">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20250720&#10;&#10;新增了量能指标">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dailyreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/dailyreview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf.py" beforeDir="false" afterPath="$PROJECT_DIR$/etf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/quicksearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/quicksearch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findbottom.py" beforeDir="false" afterPath="$PROJECT_DIR$/findbottom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/weekreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/weekreview.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +58,7 @@
     "Python.PyBroker.executor": "Run",
     "Python.bankuaifenxi.executor": "Debug",
     "Python.baostock.executor": "Debug",
+    "Python.bg.executor": "Debug",
     "Python.bstock.executor": "Run",
     "Python.conceptdayreview.executor": "Debug",
     "Python.conceptreview.executor": "Debug",
@@ -69,7 +71,7 @@
     "Python.quicksearch.executor": "Debug",
     "Python.run.executor": "Debug",
     "Python.te.executor": "Debug",
-    "Python.test.executor": "Run",
+    "Python.test.executor": "Debug",
     "Python.updateData.executor": "Debug",
     "Python.weekreview.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -174,7 +176,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752895346995</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="update  20250720&#10;&#10;新增了量能指标">
+      <option name="closed" value="true" />
+      <created>1753002272945</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1753002272945</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -193,7 +203,8 @@
     <MESSAGE value="20250619 update&#10;&#10;更新了一些新模块&#10;添加了markdown文件" />
     <MESSAGE value="20250629 update&#10;&#10;更新了一些新模块&#10;添加了板块分析&#10;引入了新的因子" />
     <MESSAGE value="20250719 update&#10;&#10;更新了etf 板块&#10;增加功能：筛选最近表现不错的etf" />
-    <option name="LAST_COMMIT_MESSAGE" value="20250719 update&#10;&#10;更新了etf 板块&#10;增加功能：筛选最近表现不错的etf" />
+    <MESSAGE value="update  20250720&#10;&#10;新增了量能指标" />
+    <option name="LAST_COMMIT_MESSAGE" value="update  20250720&#10;&#10;新增了量能指标" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -202,6 +213,11 @@
           <url>file://$PROJECT_DIR$/conceptreview.py</url>
           <line>89</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test.py</url>
+          <line>299</line>
+          <option name="timeStamp" value="42" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

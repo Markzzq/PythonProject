@@ -11,13 +11,13 @@ from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpq
 import baostock as bs
 
 START_DATE = '2025-03-13'
+# END_DATE = '2025-07-21'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-C1 = 1.02
-C2 = 1.01
+C1 = 1.0
+C2 = 1.0
 
 
 def calKDJ(df):
-
     # 要把close 中的字符转数字格式 才能进行计算
     low_list = df['low'].rolling(9, min_periods=9).min()
     low_list.fillna(value=df['low'].expanding().min(), inplace=True)
@@ -32,6 +32,20 @@ def calKDJ(df):
     return df['k'], df['d'], df['j']
 
 
+def calOBV(df):
+    # 假设 df 是股票数据，包含 'close'（收盘价）和 'volume'（成交量）
+    # 计算 VA 列
+    M = 30
+    # 强制类型转换
+    close = df['close'].astype(float)
+    volume = df['volume'].astype(float)
+    low = df['low'].astype(float)
+    high = df['high'].astype(float)
+
+    df['obv'] = (2 * close - low - high) / (high - low) * volume / 10000
+
+    return df['obv']
+
 # 均线多头策略
 def findGoodTrend():
     start_time = time.time()
@@ -40,7 +54,7 @@ def findGoodTrend():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', 'obv1', 'obv2'])
 
     # 登陆baostock开源库
     lg = bs.login()
@@ -110,12 +124,15 @@ def findGoodTrend():
             # slope, intercept = np.polyfit(x, y, 1)
 
             # 计算kdj
-            K, D , J = calKDJ(result)
+            K, D, J = calKDJ(result)
 
             # 量能指标MAVOL
             VOLUME = result['volume']
             VOLUME5 = MA(VOLUME, 5)  # 获取5日均线序列
             VOLUME10 = MA(VOLUME, 10)  # 获取5日均线序列
+
+            # OBV指标
+            OBV = calOBV(result)
 
 
             # 短线指标CCI
@@ -130,6 +147,7 @@ def findGoodTrend():
             var7 = False
             var8 = False
             var9 = False
+            var10 = False
 
 
             # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
@@ -170,15 +188,20 @@ def findGoodTrend():
             if VOLUME5[N-1] > VOLUME5[N-2] and VOLUME5[N-2] > VOLUME5[N-3] and VOLUME5[N-1] > VOLUME10[N-1]:
                 var9 = True
 
+            # obv 指标
+            # if OBV[N-1] > 0 and OBV[N-1] > OBV[N-2] and OBV[N-2] > OBV[N-3]:
+            if OBV[N - 1] > 0 and OBV[N - 2] > 0:
+                var10 = True
+
             ## 其他数据
             # 计算偏离5日线的百分比
             bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
 
-            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9
+            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10
 
             if varAll:
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],
-                           'CLOSE': result['close'][N - 1], 'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias}
+                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, 'obv1':OBV[N - 1], 'obv2':OBV[N - 2]}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
