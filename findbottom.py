@@ -4,46 +4,14 @@ import pandas as pd
 import datetime
 import time
 import schedule
+import utils
+
 
 # 股市行情数据获取
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
 import baostock as bs
 
-
-START_DATE = '2025-03-13'
-END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-Cd = 1.02
-
-
-def calKDJ(df):
-
-    # 要把close 中的字符转数字格式 才能进行计算
-    low_list = df['low'].rolling(9, min_periods=9).min()
-    low_list.fillna(value=df['low'].expanding().min(), inplace=True)
-    high_list = df['high'].rolling(9, min_periods=9).max()
-    high_list.fillna(value = df['high'].expanding().max(), inplace=True)
-    close = df['close'].astype(float)
-    rsv = (close - low_list) / (high_list - low_list) *100
-
-    df['k'] = pd.DataFrame(rsv).ewm(com=2).mean()
-    df['d'] = df['k'].ewm(com=2).mean()
-    df['j'] = 3 * df['k'] - 2 * df['d']
-    return df['k'], df['d'], df['j']
-
-
-def calOBV(df):
-    # 假设 df 是股票数据，包含 'close'（收盘价）和 'volume'（成交量）
-    # 计算 VA 列
-    M = 30
-    close = df['close'].astype(float)
-    volume = df['volume'].astype(float)
-    low = df['low'].astype(float)
-    high = df['high'].astype(float)
-
-    df['obv'] = (2 * close - low - high) / (high - low) * volume / 10000
-
-    return df['obv']
 
 
 # 底部反弹筛选
@@ -54,10 +22,17 @@ def findBottom():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
 
     # 登陆baostock开源库
     lg = bs.login()
+
+    START_DATE = '2025-03-13'
+    # END_DATE = '2025-08-01'
+    END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    C1 = 1.0
+    C2 = 1.0
 
     for row_index, row in df_stock.iterrows():
         try:
@@ -98,9 +73,16 @@ def findBottom():
                 #print('688   out ')
                 continue
 
+            # 多因子标识
+            sector = 0
+
+            # 读取数据列
+            OPEN = result['open'].astype(float)
+            CLOSE = result['close'].astype(float)
+            HIGH = result['high'].astype(float)
+            LOW = result['low'].astype(float)
 
             # 计算初级数据  均线策略因子
-            CLOSE = result['close']
             MA5 = MA(CLOSE, 5)  # 获取5日均线序列
             MA10 = MA(CLOSE, 10)  # 获取5日均线序列
             MA20 = MA(CLOSE, 20)  # 获取20日均线序列
@@ -115,20 +97,36 @@ def findBottom():
             ma20 = MA20[N - 1]
             ma30 = MA30[N - 1]
             ma60 = MA60[N - 1]
-            macd20 = macd[N - 1]
 
             # 初级数据  布林中轨曲线
             up, mid, down = BOLL(CLOSE)
 
-            x = np.array([1, 2, 3, 4, 5])
-            y = np.array(mid[N-6:N-1])
-            slope, intercept = np.polyfit(x, y, 1)
-            #print(slope)
-
             # 计算kdj
-            K, D , J = calKDJ(result)
+            K, D, J = utils.calKDJ(result)
+
+            # rsi 指标 6 日线
+            rsi6 = RSI(CLOSE, N=6)
+            rsi12 = RSI(CLOSE, N=12)
+            rsi24 = RSI(CLOSE, N=24)
+
+            # 量能指标MAVOL
+            volume = result['volume'].astype(float)
+            volume5 = MA(volume, 5)  # 获取5日均线序列
+            volume10 = MA(volume, 10)  # 获取5日均线序列
+            volume_diff = volume5 - volume10
+
+            # OBV指标
+            obv = utils.calOBV(result)
 
             # 短线指标CCI
+            cci = CCI(CLOSE, HIGH, LOW)
+
+            # BRAR  情绪指标
+            ar, br = BRAR(OPEN, CLOSE, HIGH, LOW)
+
+            # 三重指数平滑平均线
+            trix, trma = TRIX(CLOSE, 12, 9)
+            tr_diff = trix - trma
 
             var1 = False
             var2 = False
@@ -142,45 +140,56 @@ def findBottom():
             var10 = False
 
 
-            # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
-            if ma5 > ma10:
+
+            # 均线多头排列
+            if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30:
                 var1 = True
 
-            # macd 在0线下 但趋势向上
-            if macd[N - 1] > macd[N - 2] and macd[N - 2] > macd[N - 3] and macd[N - 3] > macd[N - 4]:
+            # macd 趋势向上 且dif dea 大于0
+            if macd[N - 1] > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and dif[N-2] > 0:
                 var2 = True
 
-            # dif 趋势向上
-            if dif[N - 1] > dif[N - 2] and dif[N - 2] > dif[N - 3] and dif[N - 3] > dif[N - 4]:
+            # 判断KDJ 指标变化
+            if J[N-1] > K[N-1] and K[N-1] > D[N-1] and J[N-1]>60 and K[N-1]>50:
                 var3 = True
+                # sector += 1
 
-            # dea 趋势向上
-            if dea[N - 1] > dea[N - 2] and dea[N - 2] > dea[N - 3] and dea[N - 3] > dea[N - 4]:
+            if J[N-3] < K[N-3] and K[N-3] < D[N-3]:
                 var4 = True
 
-            if dif[N - 1] > 0:   ##dif 已经向上穿越了
-                var5 = True
-
-            # Using zip() and all() to Check for strictly increasing list
-            # 判断布林中轨趋势递增 连续5日
-            var6 = all(i < j for i, j in zip(mid[N-6:N-1], mid[N-6:N-1][1:]))
-
-            # 判断KDJ 指标变化
-            if J[N-1] > K[N-1] and K[N-1] > D[N-1]:
+            # obv 指标
+            if obv[N - 1] > 0 and obv[N - 2] > 0 and obv[N-1] > obv[N-2]:
                 var7 = True
+                # sector += 1
 
-            if J[N-1] > J[N-2] and J[N-2] > J[N-3] and J[N-3] > J[N-4]:
+            # BRAR 指标
+            if ar[N-1] > 130 or br[N-1] > 130:
                 var8 = True
+                sector += 1
 
-            if J[N-1] < 85:
+            # CCI 指标
+            if cci[N-1] > 90:
                 var9 = True
 
-            turnrate = float(result['turn'][N-1])
-            if turnrate > 3:
+            # RSI 指标
+            if rsi6[N-1] > rsi12[N-1] and rsi12[N-1] > rsi24[N-1]:
                 var10 = True
 
+            # # 量能指标
+            # if volume5[N-1] > volume5[N-2] and volume5[N-2] > volume5[N-3] and volume_diff[N-2] > 0:
+            #     var5 = True
+            #     # sector += 1
+            #
+            # if volume_diff[N - 1] > volume_diff[N-2] and volume_diff[N - 2] > volume_diff[N-3]:
+            #     var6 = True
+            #     # sector += 1
+            #
+            # # TRIX 指标
+            # if tr_diff[N-1] > 0 and tr_diff[N-1] > tr_diff[N-2] and tr_diff[N-2] > tr_diff[N-3]:
+            #     var10 = True
+            #     sector += 1
 
-            varAll = var1 and var2 and var3 and var4 and var7 and var8 and var9 and var10
+            varAll = var1 and var2 and var3 and var7 and var8 and var9 and var10
 
             if varAll:
                 anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],

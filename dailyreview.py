@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 import time
 import schedule
+import utils
 
 # 股市行情数据获取
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
@@ -11,40 +12,11 @@ from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpq
 import baostock as bs
 
 START_DATE = '2025-03-13'
-# END_DATE = '2025-07-21'
+# END_DATE = '2025-07-23'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 C1 = 1.0
 C2 = 1.0
 
-
-def calKDJ(df):
-    # 要把close 中的字符转数字格式 才能进行计算
-    low_list = df['low'].rolling(9, min_periods=9).min()
-    low_list.fillna(value=df['low'].expanding().min(), inplace=True)
-    high_list = df['high'].rolling(9, min_periods=9).max()
-    high_list.fillna(value = df['high'].expanding().max(), inplace=True)
-    close = df['close'].astype(float)
-    rsv = (close - low_list) / (high_list - low_list) *100
-
-    df['k'] = pd.DataFrame(rsv).ewm(com=2).mean()
-    df['d'] = df['k'].ewm(com=2).mean()
-    df['j'] = 3 * df['k'] - 2 * df['d']
-    return df['k'], df['d'], df['j']
-
-
-def calOBV(df):
-    # 假设 df 是股票数据，包含 'close'（收盘价）和 'volume'（成交量）
-    # 计算 VA 列
-    M = 30
-    # 强制类型转换
-    close = df['close'].astype(float)
-    volume = df['volume'].astype(float)
-    low = df['low'].astype(float)
-    high = df['high'].astype(float)
-
-    df['obv'] = (2 * close - low - high) / (high - low) * volume / 10000
-
-    return df['obv']
 
 # 均线多头策略
 def findGoodTrend():
@@ -54,7 +26,7 @@ def findGoodTrend():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', 'obv1', 'obv2'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', '题材'])
 
     # 登陆baostock开源库
     lg = bs.login()
@@ -98,8 +70,13 @@ def findGoodTrend():
                 #print('688   out ')
                 continue
 
+            # 读取数据列
+            OPEN = result['open'].astype(float)
+            CLOSE = result['close'].astype(float)
+            HIGH = result['high'].astype(float)
+            LOW = result['low'].astype(float)
+
             # 计算初级数据  均线策略因子
-            CLOSE = result['close']
             MA5 = MA(CLOSE, 5)  # 获取5日均线序列
             MA10 = MA(CLOSE, 10)  # 获取5日均线序列
             MA20 = MA(CLOSE, 20)  # 获取20日均线序列
@@ -114,28 +91,36 @@ def findGoodTrend():
             ma20 = MA20[N - 1]
             ma30 = MA30[N - 1]
             ma60 = MA60[N - 1]
-            macd20 = macd[N - 1]
 
             # 初级数据  布林中轨曲线
             up, mid, down = BOLL(CLOSE)
 
-            # x = np.array([1, 2, 3, 4, 5])
-            # y = np.array(mid[N-6:N-1])
-            # slope, intercept = np.polyfit(x, y, 1)
-
             # 计算kdj
-            K, D, J = calKDJ(result)
+            K, D, J = utils.calKDJ(result)
 
             # 量能指标MAVOL
-            VOLUME = result['volume']
-            VOLUME5 = MA(VOLUME, 5)  # 获取5日均线序列
-            VOLUME10 = MA(VOLUME, 10)  # 获取5日均线序列
+            volume = result['volume']
+            volume5 = MA(volume, 5)  # 获取5日均线序列
+            volume10 = MA(volume, 10)  # 获取5日均线序列
+            volume_diff = volume5 - volume10
 
             # OBV指标
-            OBV = calOBV(result)
-
+            obv = utils.calOBV(result)
 
             # 短线指标CCI
+            cci = CCI(CLOSE, HIGH, LOW)
+
+            # rsi 指标 6 日线
+            rsi6 = RSI(CLOSE, N=6)
+            rsi12 = RSI(CLOSE, N=12)
+            rsi24 = RSI(CLOSE, N=24)
+
+            # BRAR  情绪指标
+            ar, br = BRAR(OPEN, CLOSE, HIGH, LOW)
+
+            # 三重指数平滑平均线
+            trix, trma =  TRIX(CLOSE)
+            tr_diff = trix - trma
 
 
             var1 = False
@@ -150,13 +135,12 @@ def findGoodTrend():
             var10 = False
 
 
-            # if ma5 > Cd*ma10 and ma10 > Cd*ma20:
+            # 均线多头
             if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30 and ma30 > ma60:
-            # and ma30 > Cd * ma60:
                 var1 = True
 
             # macd 趋势向上
-            if macd20 > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
+            if macd[N - 1] > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
                 var2 = True
 
             # dif 趋势向上
@@ -170,7 +154,6 @@ def findGoodTrend():
             if dif[N - 1] > 0 and dea[N - 1] > 0:
                 var5 = True
 
-            # if mid[N-1] > mid[N-2] and  mid[N-2] > mid[N-2]
 
             # Using zip() and all() to Check for strictly increasing list
             # 判断布林中轨趋势递增 连续5日
@@ -180,28 +163,36 @@ def findGoodTrend():
             if J[N-1] > K[N-1] and K[N-1] > D[N-1]:
                 var7 = True
 
-            turnrate = float(result['turn'][N-1])
-            if turnrate > 5:
-                var8 = True
+            # 换手率指标是否有用  ？？
+            # turnrate = float(result['turn'][N-1])
+            # if turnrate > 1:
+            #     var8 = True
 
             # 量能指标
-            if VOLUME5[N-1] > VOLUME5[N-2] and VOLUME5[N-2] > VOLUME5[N-3] and VOLUME5[N-1] > VOLUME10[N-1]:
+            if volume5[N-1] > volume5[N-2] and volume5[N-2] > volume5[N-3] and volume_diff[N-1] > volume_diff[N-2]:
                 var9 = True
 
             # obv 指标
             # if OBV[N-1] > 0 and OBV[N-1] > OBV[N-2] and OBV[N-2] > OBV[N-3]:
-            if OBV[N - 1] > 0 and OBV[N - 2] > 0:
+            if obv[N - 1] > 0 and obv[N - 2] > 0 and obv[N-1] > obv[N-2]:
                 var10 = True
 
-            ## 其他数据
-            # 计算偏离5日线的百分比
-            bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
 
-            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10
+
+            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var9 and var10
 
             if varAll:
+
+                ## 其他参考数据
+                # 计算偏离5日线的百分比
+                bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
+
+                # 股票题材
+                stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
+                keyword = stock_hot_keyword_em_df.iloc[-1]['概念名称']
+
                 anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
-                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, 'obv1':OBV[N - 1], 'obv2':OBV[N - 2]}
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, '题材': keyword}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
@@ -213,7 +204,7 @@ def findGoodTrend():
     print(dfResult)
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_k_data.csv"
+    file_name = f"{END_DATE}_data.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
 

@@ -86,7 +86,7 @@ def CROSS(S1,S2):                      #判断穿越 CROSS(MA(C,5),MA(C,10))
 
 #------------------   2级：技术指标函数(全部通过0级，1级函数实现） ------------------------------
 def MACD(CLOSE,SHORT=12,LONG=26,M=9):            # EMA的关系，S取120日，和雪球小数点2位相同
-    DIF = EMA(CLOSE,SHORT)-EMA(CLOSE,LONG);
+    DIF = EMA(CLOSE,SHORT)-EMA(CLOSE,LONG)
     DEA = EMA(DIF,M);      MACD=(DIF-DEA)*2
     return RD(DIF),RD(DEA),RD(MACD)
 
@@ -111,7 +111,7 @@ def BIAS(CLOSE,L1=6, L2=12, L3=24):              # BIAS乖离率
     return RD(BIAS1), RD(BIAS2), RD(BIAS3)
 
 def BOLL(CLOSE,N=20, P=2):                       #BOLL指标，布林带    
-    MID = MA(CLOSE, N); 
+    MID = MA(CLOSE, N)
     UPPER = MID + STD(CLOSE, N) * P
     LOWER = MID - STD(CLOSE, N) * P
     return RD(UPPER), RD(MID), RD(LOWER)    
