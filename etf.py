@@ -118,13 +118,14 @@ def findGoodETF():
             today_close = float(etf_hist_df['close'][n-1])
             day30_before_close = float(etf_hist_df['close'][n-30])
 
-            # 30日波动大于10个点
+            # 计算30日波动率
             dif = (today_close - day30_before_close) / day30_before_close
 
             # 历史百分位
             bias_low = (today_close - alllow) / (allHigh - alllow)
 
             # 筛选合适的基金
+            # 30日波动大于10个点
             if dif > 0.1:
                 anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅':dif, '历史百分位': bias_low}
                 df_index = row_index + 1
@@ -136,17 +137,17 @@ def findGoodETF():
                     df_index = row_index + 1
                     dftop.loc[df_index] = anyData
 
-                    fig = px.line(etf_hist_df, x="date", y="close", title=etf_name, subtitle=etf_code)
-                    fig.add_trace(go.Scatter(x=[etf_hist_df['date'].iloc[-1]],
-                                             y=[etf_hist_df['close'].iloc[-1]],
-                                             text=[etf_hist_df['date'].iloc[-1]],
-                                             mode='markers+text',
-                                             marker=dict(color='red', size=10),
-                                             textfont=dict(color='green', size=10),
-                                             textposition='top left',
-                                             showlegend=False))
-                    fig.show()
-                    fig.to_image()
+                    # fig = px.line(etf_hist_df, x="date", y="close", title=etf_name, subtitle=etf_code)
+                    # fig.add_trace(go.Scatter(x=[etf_hist_df['date'].iloc[-1]],
+                    #                          y=[etf_hist_df['close'].iloc[-1]],
+                    #                          text=[etf_hist_df['date'].iloc[-1]],
+                    #                          mode='markers+text',
+                    #                          marker=dict(color='red', size=10),
+                    #                          textfont=dict(color='green', size=10),
+                    #                          textposition='top left',
+                    #                          showlegend=False))
+                    # fig.show()
+                    # fig.to_image()
 
 
         except:
@@ -172,9 +173,9 @@ if __name__ == '__main__':
 
     # showOneETF("sz159695","通信ETF")
 
-    showAllETF()
+    # showAllETF()
 
-    # findGoodETF()
+    findGoodETF()
 
 
 

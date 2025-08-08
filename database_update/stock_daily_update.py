@@ -9,7 +9,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('stock_daily_update.log', encoding='utf-8', mode='w'),
+        logging.FileHandler('logs/stock_daily_update.log', encoding='utf-8', mode='w'),
         logging.StreamHandler()
     ]
 )
@@ -34,6 +34,7 @@ def are_all_stocks_updated(df):
             error_count += 1
         else:
             logging.debug(f"证券代码 {stock_code} 已更新")
+
 
     # 汇总报告
     if error_count > 0:

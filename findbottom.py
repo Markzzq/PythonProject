@@ -22,7 +22,7 @@ def findBottom():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', '概念'])
 
     # 登陆baostock开源库
     lg = bs.login()
@@ -192,8 +192,17 @@ def findBottom():
             varAll = var1 and var2 and var3 and var7 and var8 and var9 and var10
 
             if varAll:
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1],
-                           'CLOSE': result['close'][N - 1], 'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1]}
+
+                ## 其他数据
+                # 计算偏离5日线的百分比
+                bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
+
+                # 股票题材
+                stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
+                keyword = stock_hot_keyword_em_df.iloc[-1]['概念名称']
+
+                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, '概念':keyword}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)

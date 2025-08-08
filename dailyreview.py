@@ -164,9 +164,9 @@ def findGoodTrend():
                 var7 = True
 
             # 换手率指标是否有用  ？？
-            # turnrate = float(result['turn'][N-1])
-            # if turnrate > 1:
-            #     var8 = True
+            turnrate = float(result['turn'][N-1])
+            if turnrate > 4:
+                var8 = True
 
             # 量能指标
             if volume5[N-1] > volume5[N-2] and volume5[N-2] > volume5[N-3] and volume_diff[N-1] > volume_diff[N-2]:
@@ -179,7 +179,7 @@ def findGoodTrend():
 
 
 
-            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var9 and var10
+            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10
 
             if varAll:
 

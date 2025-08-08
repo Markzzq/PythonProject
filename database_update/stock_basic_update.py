@@ -8,7 +8,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('stock_basic_update.log', encoding='utf-8', mode='w'),
+        logging.FileHandler('logs/stock_basic_update.log', encoding='utf-8', mode='w'),
         logging.StreamHandler()
     ]
 )
