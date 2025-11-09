@@ -3,6 +3,8 @@ import akshare as ak
 import pandas as pd
 import datetime
 import time
+import utils
+
 
 # 股市行情数据获取和作图 -2
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
@@ -16,7 +18,7 @@ import plotly.io as pio
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-START_DATE = '2025-03-13'
+START_DATE = '2025-05-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
 
@@ -62,9 +64,9 @@ def showOneETF(code, name):
 
 
 # 读取备选列表里的基金并展示出来
-def showAllETF():
+def showAllETF(filename):
     # 读取ETF列表
-    df_etf_list = pd.read_csv('2025-07-19_topETF.csv')
+    df_etf_list = pd.read_csv(filename)
     df_etf = df_etf_list[['代码', '名称']]
 
     for row_index, row in df_etf.iterrows():
@@ -87,16 +89,19 @@ def showAllETF():
 
 
 ## 抓取被低估但最近表现好的基金
-def findGoodETF():
+def findGoodETF(filename):
     start_time = time.time()
 
-    df_etf_list = pd.read_csv('sina_etf_list.csv')
+    df_etf_list = pd.read_csv(filename)
     df_etf = df_etf_list[['代码', '名称']]
 
     # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn', 'bias': 'ma5bias'}
     # dfResult = pd.DataFrame(anyData, index=[0])
-    dfResult = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅' '历史百分位'])
-    dftop =  pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
+    dfResult = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
+    dfTop = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
+    dfReboom = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+
+
 
     for row_index, row in df_etf.iterrows():
         try:
@@ -112,30 +117,70 @@ def findGoodETF():
 
             n = etf_hist_df.shape[0]
 
-            allHigh = np.max(etf_hist_df['close'])
-            alllow = np.min(etf_hist_df['close'])
+            CLOSE = etf_hist_df['close'].astype(float)
 
-            today_close = float(etf_hist_df['close'][n-1])
-            day30_before_close = float(etf_hist_df['close'][n-30])
+            allHigh = np.max(CLOSE)
+            alllow = np.min(CLOSE)
+
+            today_close = CLOSE[n-1]
+            day30_before_close = CLOSE[n-30]
+            day7_before_close = CLOSE[n-7]
 
             # 计算30日波动率
-            dif = (today_close - day30_before_close) / day30_before_close
+            dif30 = (today_close - day30_before_close) / day30_before_close
+
+            # 计算7日波动率
+            dif7 = (today_close - day7_before_close) / day7_before_close
 
             # 历史百分位
             bias_low = (today_close - alllow) / (allHigh - alllow)
 
             # 筛选合适的基金
+            # 短线反转的etf
+            # 计算kdj
+            K, D, J = utils.calKDJ(etf_hist_df)
+
+            var1 = False
+            var2 = False
+            var3 = False
+
+
+            # 判断KDJ 指标变化
+            if J[n-1] > K[n-1] and K[n-1] > D[n-1]:
+                var1 = True
+
+            if J[n-1] > J[n-2] and J[n-2] > J[n-3]:
+                var2 = True
+
+            # rsi 指标 6 日线
+            rsi6 = RSI(CLOSE, N=6)
+            rsi12 = RSI(CLOSE, N=12)
+            rsi24 = RSI(CLOSE, N=24)
+            if rsi6[n-1] > rsi12[n-1] and rsi12[n-1] > rsi24[n-1]:
+                var3 = True
+
+            # 获取macd指标
+            dif, dea, macd = MACD(CLOSE)
+
+            if var1 and var2 and var3:
+                anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+                df_index = row_index + 1
+                dfReboom.loc[df_index] = anyData
+                print("add one in reboom", etf_code, etf_name)
+
+
+
             # 30日波动大于10个点
-            if dif > 0.1:
-                anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅':dif, '历史百分位': bias_low}
+            if dif30 > 0.1:
+                anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅':dif30, '历史百分位': bias_low}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print("add one ", etf_code, etf_name)
 
                 if bias_low == 1:
-                    anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅': dif, '历史百分位': bias_low}
+                    anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅': dif30, '历史百分位': bias_low}
                     df_index = row_index + 1
-                    dftop.loc[df_index] = anyData
+                    dfTop.loc[df_index] = anyData
 
                     # fig = px.line(etf_hist_df, x="date", y="close", title=etf_name, subtitle=etf_code)
                     # fig.add_trace(go.Scatter(x=[etf_hist_df['date'].iloc[-1]],
@@ -150,6 +195,8 @@ def findGoodETF():
                     # fig.to_image()
 
 
+
+
         except:
             continue
 
@@ -158,11 +205,14 @@ def findGoodETF():
     print(f"findGoodETF运行时间：{end_time - start_time}秒")
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_findGoodETF.csv"
-    top_name = f"{END_DATE}_topETF.csv"
+    file_name = f"{END_DATE}_GoodETF.csv"
+    top_name = f"{END_DATE}_TopETF.csv"
+    reboom_name = f"{END_DATE}_ReboomETF.csv"
+
 
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
-    dftop.to_csv(top_name, encoding="utf-8-sig", index=False)
+    dfTop.to_csv(top_name, encoding="utf-8-sig", index=False)
+    dfReboom.to_csv(reboom_name, encoding="utf-8-sig", index=False)
 
 
 
@@ -173,9 +223,10 @@ if __name__ == '__main__':
 
     # showOneETF("sz159695","通信ETF")
 
-    # showAllETF()
+    findGoodETF('sina_etf_list.csv')
 
-    findGoodETF()
+    # showAllETF('2025-10-22_topETF.csv')
+
 
 
 

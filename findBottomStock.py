@@ -14,7 +14,7 @@ import baostock as bs
 
 
 
-# 底部反弹筛选
+# 底部反弹筛选策略
 def findBottom():
     start_time = time.time()
 
@@ -22,12 +22,12 @@ def findBottom():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', '概念'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '概念'])
 
     # 登陆baostock开源库
     lg = bs.login()
 
-    START_DATE = '2025-03-13'
+    START_DATE = '2025-05-13'
     # END_DATE = '2025-08-01'
     END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
@@ -201,7 +201,7 @@ def findBottom():
                 stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
                 keyword = stock_hot_keyword_em_df.iloc[-1]['概念名称']
 
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
+                anyData = {'stock': row['代码'], 'name': row_name, 'open': result['open'][N - 1], 'close': result['close'][N - 1],
                            'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, '概念':keyword}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
@@ -213,7 +213,7 @@ def findBottom():
     print(dfResult)
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_bottom_stock.csv"
+    file_name = f"{END_DATE}_Bottom_Stock.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
 

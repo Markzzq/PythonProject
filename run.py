@@ -11,7 +11,7 @@ def run_script(script_name):
 if __name__ == "__main__":
 
     # python队列
-    scripts = ['dailyreview.py', 'findbottom.py']
+    scripts = ['dailyReview.py', 'findBottomStock.py','findETF.py']   # weekReview.py
     # 线程队列
     threads = []
 

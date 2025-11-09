@@ -612,7 +612,10 @@ def findTrend():
 
 if __name__ == '__main__':
 
-    getOneStock()
+    # getOneStock()
     # findTestTrend()
 
     # findTrend()
+
+    utils.showAllStock('2025-10-22_bottom_stock.csv')
+

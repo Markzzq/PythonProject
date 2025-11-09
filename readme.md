@@ -18,15 +18,23 @@
 
 ## 基础功能
 - **趋势股筛选**  
-  `dailyreview.py` → 输出结果: `k_data`
+  `dailyReview.py` → 输出结果: `stock` 
 - **反弹筑底股票筛选**  
-  `findbottom.py` → 输出结果: `bottom_data`（寻找0线以下筑底股）
-- **数据更新**  
-  `updataData.py` → 数据集更新
+  `findBottomStock.py` → 输出结果: `bottom_Stock`（寻找0线以下筑底股）
 - **板块热度分析**  
   `bankuaifenxi.py` → 行业强度趋势分析
 - **ETF分析**  
-  `etf.py` → 基金走势展示/条件筛选 → 输出结果: `findGoodETF`(优质etf)
+  `findETF.py` → 基金走势展示/条件筛选 → 输出结果: `GoodETF`(优质etf)
+
+## 集成功能utils
+- **数据更新**  
+  `updataData()` → 数据集更新
+- - **特殊指标计算**  
+  `calKDJ()` → 计算kdj
+- - - **特殊指标计算**  
+  `calOBV()` → 计算obv
+- - - **批量显示以筛选的股票**  
+  `showAllStock()` → 显示
 
 ## 数据集
 - **sina_etf_list**  

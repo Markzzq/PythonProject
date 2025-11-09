@@ -11,9 +11,9 @@ from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpq
 import baostock as bs
 
 START_DATE = '2025-01-13'
-END_DATE = '2025-07-11'
+# END_DATE = '2025-07-11'
 
-# END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 C1 = 1.02
 C2 = 1.01
 

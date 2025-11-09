@@ -11,7 +11,7 @@ from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
 import baostock as bs
 
-START_DATE = '2025-03-13'
+START_DATE = '2025-05-13'
 # END_DATE = '2025-07-23'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 C1 = 1.0
@@ -26,7 +26,7 @@ def findGoodTrend():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', '题材'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
 
     # 登陆baostock开源库
     lg = bs.login()
@@ -191,7 +191,7 @@ def findGoodTrend():
                 stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
                 keyword = stock_hot_keyword_em_df.iloc[-1]['概念名称']
 
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
+                anyData = {'stock': row['代码'], 'name': row_name, 'open': result['open'][N - 1], 'close': result['close'][N - 1],
                            'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias, '题材': keyword}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
@@ -204,7 +204,7 @@ def findGoodTrend():
     print(dfResult)
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_data.csv"
+    file_name = f"{END_DATE}_Stock.csv"
     #dfResult.to_csv(file_name, encoding="gbk", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
 
