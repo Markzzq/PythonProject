@@ -91,4 +91,16 @@ if __name__ == '__main__':
 
 
 
-    utils.showAllStock('2025-10-22_Bottom_Stock.csv')
+    # 更新股票 etf备选列表
+    # utils.updateData()
+
+    # 读取股票列表 并在网页中全部显示出来
+    utils.showAllStock('2025-12-13_test.csv')
+
+    # 抓取某一只etf的图像
+    # utils.showOneETF("sz159695")
+
+    # 抓取某一组etf的图像
+    # utils.showAllETF('2025-10-22_topETF.csv')
+
+

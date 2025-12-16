@@ -20,7 +20,7 @@ def findBottom():
 
     # 读取股票列表
     df_stock_list = pd.read_csv('stock_zh_list.csv')
-    df_stock = df_stock_list[['代码', '名称']][266:]
+    df_stock = df_stock_list[['代码', '名称']][282:]
 
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '概念'])
 

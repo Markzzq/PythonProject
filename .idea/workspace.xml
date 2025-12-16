@@ -4,20 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20250808&#10;修正了一下前期参数">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dailyreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/dailyReview.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/findbottom.py" beforeDir="false" afterPath="$PROJECT_DIR$/findBottomStock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dailyReview.py" beforeDir="false" afterPath="$PROJECT_DIR$/findGoodStock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/daybacktest.py" beforeDir="false" afterPath="$PROJECT_DIR$/daybacktest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findBottomStock.py" beforeDir="false" afterPath="$PROJECT_DIR$/findBottomStock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/quicksearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/quicksearch.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sina_etf_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/sina_etf_list.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stock_zh_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/stock_zh_list.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/updateData.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weekreview.py" beforeDir="false" afterPath="$PROJECT_DIR$/weekReview.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -224,7 +223,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754663818688</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构">
+      <option name="closed" value="true" />
+      <created>1762702768165</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1762702768165</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -247,7 +254,8 @@
     <MESSAGE value="update  20250726&#10;&#10;新增了obv 指标" />
     <MESSAGE value="update  20250803 &#10;修正了一下前期参数" />
     <MESSAGE value="update  20250808&#10;修正了一下前期参数" />
-    <option name="LAST_COMMIT_MESSAGE" value="update  20250808&#10;修正了一下前期参数" />
+    <MESSAGE value="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <option name="LAST_COMMIT_MESSAGE" value="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

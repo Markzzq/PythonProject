@@ -24,18 +24,18 @@ def getOneStock():
     start_time = time.time()
 
     START_DATE = '2025-03-13'
-    END_DATE = '2025-07-31'
+    # END_DATE = '2025-07-31'
     END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
     C1 = 1.02
     C2 = 1.01
-
+    #
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', 'obv1', 'obv2'])
 
     # 登陆baostock开源库
     lg = bs.login()
 
-    row_code = "sz.000032"
+    row_code = "sz.000593"
     row_name = "深桑达A"
 
     # 日线数据
@@ -142,19 +142,21 @@ def findTestTrend():
 
     # 读取股票列表
     df_stock_list = pd.read_csv('stock_zh_list.csv')
-    df_stock = df_stock_list[['代码', '名称']][266:]
+    df_stock = df_stock_list[['代码', '名称']][282:]
 
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
+    dfTest = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
+
 
     # 登陆baostock开源库
     lg = bs.login()
 
-    START_DATE = '2025-03-13'
-    END_DATE = '2025-08-01'
-    # END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+    START_DATE = '2025-06-13'
+    # END_DATE = '2025-08-01'
+    END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
-    C1 = 1.0
-    C2 = 1.0
+    C1 = 1.01
+    C2 = 1.01
 
     for row_index, row in df_stock.iterrows():
         try:
@@ -268,8 +270,11 @@ def findTestTrend():
                 var1 = True
 
             # macd 趋势向上 且dif dea 大于0
-            if macd[N - 1] > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and dif[N-2] > 0:
+            if macd[N - 1] > 0 and macd[N - 2] > 0 and macd[N - 3] > 0:
                 var2 = True
+
+            # if macd[N - 1] > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and dif[N-2] > 0:
+            #     var2 = True
 
             # 判断KDJ 指标变化
             if J[N-1] > K[N-1] and K[N-1] > D[N-1] and J[N-1]>60 and K[N-1]>50:
@@ -285,7 +290,7 @@ def findTestTrend():
                 # sector += 1
 
             # BRAR 指标
-            if ar[N-1] > 130 or br[N-1] > 130:
+            if ar[N-1] > 120 or br[N-1] > 120:
                 var8 = True
                 sector += 1
 
@@ -309,18 +314,33 @@ def findTestTrend():
             # # TRIX 指标
             # if tr_diff[N-1] > 0 and tr_diff[N-1] > tr_diff[N-2] and tr_diff[N-2] > tr_diff[N-3]:
             #     var10 = True
-            #     sector += 1
+            #     sector += 1    and var3 and var7 and var8 and var9 and var10
 
-            varAll = var1 and var2 and var3 and var7 and var8 and var9 and var10
+            varAll = var1 and var2 and var7 and var8 and var9
 
+
+            vartest = var7 and var8 and var9
+
+            ## 其他数据
+            # 计算偏离5日线的百分比
+            bias = (float(CLOSE[N - 1]) / ma5 - 1) * 100
+
+
+            if vartest:
+
+                # 股票题材
+                stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
+                keyword = stock_hot_keyword_em_df['概念名称']
+
+                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias}
+                df_index = row_index + 1
+                dfTest.loc[df_index] = anyData
+                print('success add one', row['代码'][2:], row_name)
 
             # varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10
 
             if varAll:
-
-                ## 其他数据
-                # 计算偏离5日线的百分比
-                bias = (float(CLOSE[N-1]) / ma5 - 1) * 100
 
                 # 股票题材
                 stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
@@ -339,9 +359,11 @@ def findTestTrend():
     print(dfResult)
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_review.csv"
+    file_name1 = f"{END_DATE}_wse.csv"
+    file_name = f"{END_DATE}_test.csv"
 
-    #dfResult.to_csv(file_name, encoding="gbk", index=False)
+
+    dfTest.to_csv(file_name1, encoding="utf-8-sig", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
 
     #### 登出系统 ####
@@ -600,6 +622,157 @@ def findTrend():
 
 
 
+## 复盘一段时间的基金走势看后续是否如计划涨
+def reviewETF(filename):
+    start_time = time.time()
+
+    # START_DATE = '20250101'
+    # END_DATE = '20250625'
+
+    START_DATE = '2025-01-01'
+    END_DATE = '2025-06-25'
+    # END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+
+
+    df_etf_list = pd.read_csv(filename)
+    df_etf = df_etf_list[['代码', '名称']]
+
+    # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn', 'bias': 'ma5bias'}
+    # dfResult = pd.DataFrame(anyData, index=[0])
+    dfResult = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+    dfTop = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+    dfReverse = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+
+
+
+    for row_index, row in df_etf.iterrows():
+        try:
+            time.sleep(0.5)
+
+            etf_code = row['代码']  # 是因为抓到的数据带了字母 只取数字
+            etf_name = row['名称']
+
+            # etf_hist_df = ak.fund_etf_hist_em(symbol=etf_code, period="daily", start_date=START_DATE,
+            #                                           end_date=END_DATE, adjust="")
+
+            etf_hist_df = ak.fund_etf_hist_sina(symbol=etf_code)
+
+            nt = etf_hist_df.shape[0]
+            n = nt -100
+
+            CLOSE = etf_hist_df['close'].astype(float)
+
+
+            allHigh = np.max(CLOSE)
+            alllow = np.min(CLOSE)
+
+            today_close = CLOSE[n-1]
+            day30_before_close = CLOSE[n-30]
+            day7_before_close = CLOSE[n-7]
+
+            # 计算30日波动率
+            dif30 = (today_close - day30_before_close) / day30_before_close
+
+            # 计算7日波动率
+            dif7 = (today_close - day7_before_close) / day7_before_close
+
+            # 历史百分位
+            bias_low = (today_close - alllow) / (allHigh - alllow)
+
+            # 筛选合适的基金
+            # 短线反转的etf
+            # 计算kdj
+            K, D, J = utils.calKDJ(etf_hist_df)
+
+            var1 = False
+            var2 = False
+            var3 = False
+            var4 = False
+
+
+            # 判断KDJ 指标变化
+            if J[n-1] > K[n-1] and K[n-1] > D[n-1]:
+                var1 = True
+
+            if J[n-1] > J[n-2] and J[n-2] > J[n-3]:
+                var2 = True
+
+            # rsi 指标 6 日线
+            rsi6 = RSI(CLOSE, N=6)
+            rsi12 = RSI(CLOSE, N=12)
+            rsi24 = RSI(CLOSE, N=24)
+            if rsi6[n-1] > rsi12[n-1] and rsi12[n-1] > rsi24[n-1]:
+                var3 = True
+
+            # 收盘价连续增加
+            if CLOSE[n-1] >= CLOSE[n-2] and CLOSE[n-2] >= CLOSE[n-3]:
+                var4 = True
+
+            # 获取macd指标
+            dif, dea, macd = MACD(CLOSE)
+
+            # 计算初级数据  均线策略因子
+            MA5 = MA(CLOSE, 5)  # 获取5日均线序列
+            MA10 = MA(CLOSE, 10)  # 获取5日均线序列
+            MA20 = MA(CLOSE, 20)  # 获取20日均线序列
+            MA30 = MA(CLOSE, 30)  # 获取30日均线序列
+            MA60 = MA(CLOSE, 60)  # 获取60日均线序列
+
+
+            # if var1 and var2 and var3 and var4:
+            #     anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+            #     df_index = row_index + 1
+            #     dfReverse.loc[df_index] = anyData
+            #     print("add one in reverse", etf_code, etf_name)
+
+
+
+            # 7日波动大于10个点 同时macd 转正 dif 为正 dea 为正
+
+            tr1 = False
+            tr2 = False
+            tr3 = False
+            tr4 = False
+
+            if MA5[n-1] > MA5[n-2] and MA5[n-2] > MA5[n-3]:
+                tr1 = True
+
+            if MA5[n-1] > MA10[n-1] and MA10[n-1] > MA20[n-1] and MA20[n-1] > MA30[n-1]:
+                tr2 = True
+
+            if macd[n-1] > 0:
+                tr3 = True
+
+
+            if tr1 and tr2 and tr3:
+                anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+                df_index = row_index + 1
+                dfResult.loc[df_index] = anyData
+                print("add one ", etf_code, etf_name)
+
+            # # 创了新高的股票
+            # if bias_low == 1:
+            #     anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+            #     df_index = row_index + 1
+            #     dfTop.loc[df_index] = anyData
+
+
+        except:
+            continue
+
+
+    end_time = time.time()
+    print(f"reviewETF运行时间：{end_time - start_time}秒")
+
+    #### 结果集输出到csv文件 ####
+    file_name = f"{END_DATE}_reviewETF.csv"
+    # top_name = f"{END_DATE}_TopETF.csv"
+    # reverse_name = f"{END_DATE}_ReverseETF.csv"
+
+
+    dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
+    # dfTop.to_csv(top_name, encoding="utf-8-sig", index=False)
+    # dfReverse.to_csv(reverse_name, encoding="utf-8-sig", index=False)
 
 
 
@@ -613,9 +786,11 @@ def findTrend():
 if __name__ == '__main__':
 
     # getOneStock()
-    # findTestTrend()
+    findTestTrend()
 
     # findTrend()
+    #
+    # utils.showAllStock('2025-10-22_bottom_stock.csv')
 
-    utils.showAllStock('2025-10-22_bottom_stock.csv')
+    # reviewETF('sina_etf_list.csv')
 

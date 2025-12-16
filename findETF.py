@@ -18,7 +18,7 @@ import plotly.io as pio
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-START_DATE = '2025-05-13'
+START_DATE = '2025-06-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
 
@@ -88,7 +88,7 @@ def showAllETF(filename):
             continue
 
 
-## 抓取被低估但最近表现好的基金
+## 抓取最近表现好的基金（7日最佳 30日最佳） 以及出现反转的基金  以及突破新高的基金
 def findGoodETF(filename):
     start_time = time.time()
 
@@ -97,9 +97,10 @@ def findGoodETF(filename):
 
     # anyData = {'stock': '00', 'name': 'name', 'OPEN': 'open', 'CLOSE': 'close', 'pctChg': 'pctChg', 'turn': 'turn', 'bias': 'ma5bias'}
     # dfResult = pd.DataFrame(anyData, index=[0])
-    dfResult = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
-    dfTop = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
-    dfReboom = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+    dfBest7 = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+    dfBest30 = pd.DataFrame(data=None, columns=['代码', '名称', '30日涨幅', '历史百分位'])
+    dfTop = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
+    dfReverse = pd.DataFrame(data=None, columns=['代码', '名称', '7日涨幅', '历史百分位'])
 
 
 
@@ -140,10 +141,22 @@ def findGoodETF(filename):
             # 计算kdj
             K, D, J = utils.calKDJ(etf_hist_df)
 
+            # 获取macd指标
+            dif, dea, macd = MACD(CLOSE)
+
+            # 计算初级数据  均线策略因子
+            MA5 = MA(CLOSE, 5)  # 获取5日均线序列
+            MA10 = MA(CLOSE, 10)  # 获取5日均线序列
+            MA20 = MA(CLOSE, 20)  # 获取20日均线序列
+            MA30 = MA(CLOSE, 30)  # 获取30日均线序列
+            MA60 = MA(CLOSE, 60)  # 获取60日均线序列
+
             var1 = False
             var2 = False
             var3 = False
-
+            var4 = False
+            var5 = False
+            var6 = False
 
             # 判断KDJ 指标变化
             if J[n-1] > K[n-1] and K[n-1] > D[n-1]:
@@ -159,42 +172,61 @@ def findGoodETF(filename):
             if rsi6[n-1] > rsi12[n-1] and rsi12[n-1] > rsi24[n-1]:
                 var3 = True
 
-            # 获取macd指标
-            dif, dea, macd = MACD(CLOSE)
+            # 收盘价连续增加
+            if CLOSE[n-1] >= CLOSE[n-2] and CLOSE[n-2] >= CLOSE[n-3]:
+                var4 = True
 
-            if var1 and var2 and var3:
+            # macd指标开始上移
+            if macd[n-1] > macd[n-2] and macd[n-2] > macd[n-3]:
+                var5 = True
+
+            # 5日均线出现上移
+            if MA5[n-1] > MA5[n-2] and MA5[n-2] > MA5[n-3]:
+                var6 = True
+
+            if var4 and var5 and var6:
                 anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
                 df_index = row_index + 1
-                dfReboom.loc[df_index] = anyData
-                print("add one in reboom", etf_code, etf_name)
+                dfReverse.loc[df_index] = anyData
+                print("add one in reverse", etf_code, etf_name)
 
 
 
-            # 30日波动大于10个点
-            if dif30 > 0.1:
+            # 7日波动大于10个点 30日波动大于10个点
+            # 同时macd 转正 dif 为正 dea 为正
+
+            tr1 = False
+            tr2 = False
+            tr3 = False
+            tr4 = False
+
+            if MA5[n-1] > MA5[n-2] and MA5[n-2] > MA5[n-3]:
+                tr1 = True
+
+            if MA5[n-1] > MA10[n-1] and MA10[n-1] > MA20[n-1]:
+                tr2 = True
+
+            if dif[n-1] > 0 and dea[n-1] > 0:
+                tr3 = True
+
+
+            if dif7 > 0.05:
+                anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+                df_index = row_index + 1
+                dfBest7.loc[df_index] = anyData
+                print("add one in best7", etf_code, etf_name)
+
+            if dif30 > 0.10:
                 anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅':dif30, '历史百分位': bias_low}
                 df_index = row_index + 1
-                dfResult.loc[df_index] = anyData
-                print("add one ", etf_code, etf_name)
+                dfBest30.loc[df_index] = anyData
+                print("add one in best30 ", etf_code, etf_name)
 
-                if bias_low == 1:
-                    anyData = {'代码': etf_code, '名称': etf_name, '30日涨幅': dif30, '历史百分位': bias_low}
-                    df_index = row_index + 1
-                    dfTop.loc[df_index] = anyData
-
-                    # fig = px.line(etf_hist_df, x="date", y="close", title=etf_name, subtitle=etf_code)
-                    # fig.add_trace(go.Scatter(x=[etf_hist_df['date'].iloc[-1]],
-                    #                          y=[etf_hist_df['close'].iloc[-1]],
-                    #                          text=[etf_hist_df['date'].iloc[-1]],
-                    #                          mode='markers+text',
-                    #                          marker=dict(color='red', size=10),
-                    #                          textfont=dict(color='green', size=10),
-                    #                          textposition='top left',
-                    #                          showlegend=False))
-                    # fig.show()
-                    # fig.to_image()
-
-
+            # 创了新高的股票 进 dfTop
+            if bias_low == 1:
+                anyData = {'代码': etf_code, '名称': etf_name, '7日涨幅':dif7, '历史百分位': bias_low}
+                df_index = row_index + 1
+                dfTop.loc[df_index] = anyData
 
 
         except:
@@ -205,14 +237,17 @@ def findGoodETF(filename):
     print(f"findGoodETF运行时间：{end_time - start_time}秒")
 
     #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_GoodETF.csv"
-    top_name = f"{END_DATE}_TopETF.csv"
-    reboom_name = f"{END_DATE}_ReboomETF.csv"
+    file_Reverse = f"{END_DATE}_ETF_Reverse.csv"
+
+    file_Best7 = f"{END_DATE}_ETF_Best7.csv"
+    file_Best30 = f"{END_DATE}_ETF_Best30.csv"
+    file_Top = f"{END_DATE}_ETF_Top.csv"
 
 
-    dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
-    dfTop.to_csv(top_name, encoding="utf-8-sig", index=False)
-    dfReboom.to_csv(reboom_name, encoding="utf-8-sig", index=False)
+    dfReverse.to_csv(file_Reverse, encoding="utf-8-sig", index=False)
+    dfBest7.to_csv(file_Best7, encoding="utf-8-sig", index=False)
+    dfBest30.to_csv(file_Best30, encoding="utf-8-sig", index=False)
+    dfTop.to_csv(file_Top, encoding="utf-8-sig", index=False)
 
 
 
@@ -221,11 +256,8 @@ def findGoodETF(filename):
 
 if __name__ == '__main__':
 
-    # showOneETF("sz159695","通信ETF")
-
     findGoodETF('sina_etf_list.csv')
 
-    # showAllETF('2025-10-22_topETF.csv')
 
 
 

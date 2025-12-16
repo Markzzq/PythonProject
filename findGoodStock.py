@@ -14,8 +14,8 @@ import baostock as bs
 START_DATE = '2025-05-13'
 # END_DATE = '2025-07-23'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
-C1 = 1.0
-C2 = 1.0
+C1 = 1.02
+C2 = 1.01
 
 
 # 均线多头策略
@@ -24,7 +24,7 @@ def findGoodTrend():
 
     # 读取股票列表
     df_stock_list = pd.read_csv('stock_zh_list.csv')
-    df_stock = df_stock_list[['代码', '名称']][266:]
+    df_stock = df_stock_list[['代码', '名称']][282:]
 
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
 
