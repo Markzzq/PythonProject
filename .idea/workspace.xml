@@ -4,19 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20251216&#10;修正了一下部分函数&#10;修正了代码结构">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dailyReview.py" beforeDir="false" afterPath="$PROJECT_DIR$/findGoodStock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/daybacktest.py" beforeDir="false" afterPath="$PROJECT_DIR$/daybacktest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/findBottomStock.py" beforeDir="false" afterPath="$PROJECT_DIR$/findBottomStock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/findETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sina_etf_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/sina_etf_list.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stock_zh_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/stock_zh_list.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,50 +46,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.Ashare.executor": "Debug",
-    "Python.MyTT.executor": "Debug",
-    "Python.PBroker.executor": "Run",
-    "Python.PyBroker.executor": "Run",
-    "Python.bankuaifenxi.executor": "Debug",
-    "Python.baostock.executor": "Debug",
-    "Python.bg.executor": "Debug",
-    "Python.bstock.executor": "Run",
-    "Python.conceptdayreview.executor": "Debug",
-    "Python.conceptreview.executor": "Debug",
-    "Python.dailyreview.executor": "Run",
-    "Python.daybacktest.executor": "Debug",
-    "Python.etf.executor": "Debug",
-    "Python.findETF.executor": "Run",
-    "Python.findbottom.executor": "Debug",
-    "Python.findcross.executor": "Debug",
-    "Python.main.executor": "Run",
-    "Python.quant.executor": "Run",
-    "Python.quicksearch.executor": "Debug",
-    "Python.run.executor": "Run",
-    "Python.stock_basic_update.executor": "Run",
-    "Python.stock_daily_update.executor": "Run",
-    "Python.te.executor": "Debug",
-    "Python.test.executor": "Debug",
-    "Python.updateData.executor": "Debug",
-    "Python.weekreview.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHELLCHECK.PATH": "C:\\Users\\zhuziqian\\AppData\\Roaming\\JetBrains\\PyCharmCE2025.1\\plugins\\Shell Script\\shellcheck.exe",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/zhuziqian/PycharmProjects/PythonProject",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "settings.editor.splitter.proportion": "0.27596742"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.Ashare.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.MyTT.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.PBroker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PyBroker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.bankuaifenxi.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.baostock.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.bg.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.bstock.executor&quot;: &quot;Run&quot;,
+    &quot;Python.conceptdayreview.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.conceptreview.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.dailyreview.executor&quot;: &quot;Run&quot;,
+    &quot;Python.daybacktest.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.etf.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.findETF.executor&quot;: &quot;Run&quot;,
+    &quot;Python.findbottom.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.findcross.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.quant.executor&quot;: &quot;Run&quot;,
+    &quot;Python.quicksearch.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.stock_basic_update.executor&quot;: &quot;Run&quot;,
+    &quot;Python.stock_daily_update.executor&quot;: &quot;Run&quot;,
+    &quot;Python.te.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.updateData.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.weekreview.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.word2markdon.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\zhuziqian\\AppData\\Roaming\\JetBrains\\PyCharmCE2025.1\\plugins\\Shell Script\\shellcheck.exe&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/zhuziqian/PycharmProjects/PythonProject&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.CSV/TSV/PSV&quot;,
+    &quot;settings.editor.splitter.proportion&quot;: &quot;0.27596742&quot;
   },
-  "keyToStringList": {
-    "ChangesTree.GroupingKeys": [
-      "repository"
+  &quot;keyToStringList&quot;: {
+    &quot;ChangesTree.GroupingKeys&quot;: [
+      &quot;repository&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\zhuziqian\PycharmProjects\PythonProject" />
@@ -231,7 +222,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762702768165</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="update  20251216&#10;修正了一下部分函数&#10;修正了代码结构">
+      <option name="closed" value="true" />
+      <created>1765900210311</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1765900210311</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -255,7 +254,8 @@
     <MESSAGE value="update  20250803 &#10;修正了一下前期参数" />
     <MESSAGE value="update  20250808&#10;修正了一下前期参数" />
     <MESSAGE value="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构" />
-    <option name="LAST_COMMIT_MESSAGE" value="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <MESSAGE value="update  20251216&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <option name="LAST_COMMIT_MESSAGE" value="update  20251216&#10;修正了一下部分函数&#10;修正了代码结构" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
