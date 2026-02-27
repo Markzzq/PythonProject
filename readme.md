@@ -6,9 +6,9 @@
 
 ## 开源库
 - **Ashare**  
-  `Ashare.py`开源库调用接口
+  `Ashare.py`开源库调用接口  查etf比较好 因为股票日内会限制次数
 - **baostock**  
-  `bstock.py`开源库调用（需登录/退出操作）
+  `bstock.py`开源库调用（需登录/退出操作）  查股票比较好
 - **myTT**  
   `MyTT.py`技术指标计算工具（基于MyTT）
 

@@ -125,7 +125,7 @@ def showAllETF(filename):
 
 
 def updateData():
-    # 抓取沪深基金并保存在表格中
+    # 抓取沪深基金etf并保存在表格中
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
     etf.to_csv("sina_etf_list.csv", encoding='utf-8-sig')
 

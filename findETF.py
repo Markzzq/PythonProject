@@ -125,7 +125,7 @@ def findGoodETF(filename):
 
             today_close = CLOSE[n-1]
             day30_before_close = CLOSE[n-30]
-            day7_before_close = CLOSE[n-7]
+            day7_before_close = CLOSE[n-6]
 
             # 计算30日波动率
             dif30 = (today_close - day30_before_close) / day30_before_close
@@ -238,7 +238,6 @@ def findGoodETF(filename):
 
     #### 结果集输出到csv文件 ####
     file_Reverse = f"{END_DATE}_ETF_Reverse.csv"
-
     file_Best7 = f"{END_DATE}_ETF_Best7.csv"
     file_Best30 = f"{END_DATE}_ETF_Best30.csv"
     file_Top = f"{END_DATE}_ETF_Top.csv"
