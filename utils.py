@@ -17,7 +17,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 
 
-def calKDJ(df):
+def cal_KDJ(df):
     # 要把close 中的字符转数字格式 才能进行计算
     low_list = df['low'].rolling(9, min_periods=9).min()
     low_list.fillna(value=df['low'].expanding().min(), inplace=True)
@@ -33,7 +33,7 @@ def calKDJ(df):
     return df['k'], df['d'], df['j']
 
 
-def calOBV(df):
+def cal_OBV(df):
     # 假设 df 是股票数据，包含 'close'（收盘价）和 'volume'（成交量）
     # 计算 VA 列
     M = 30
@@ -47,6 +47,54 @@ def calOBV(df):
 
     return df['obv']
 
+# 1. 成交量变异率（VR）—— 量能趋势指标，判断量能与价格的匹配度
+# 公式：VR = (上涨日成交量总和) / (下跌日成交量总和) * 100
+def cal_VR(close, volume, N=24):
+    """计算VR指标（默认24日周期）"""
+    df = pd.DataFrame({'close': close, 'volume': volume})
+    df['prev_close'] = df['close'].shift(1)
+    df['up_vol'] = np.where(df['close'] > df['prev_close'], df['volume'], 0)
+    df['down_vol'] = np.where(df['close'] < df['prev_close'], df['volume'], 0)
+    df['vr'] = df['up_vol'].rolling(N).sum() / (df['down_vol'].rolling(N).sum() + 0.0001) * 100  # 避免除0
+    return df['vr'].values
+
+
+# 7. 能量潮指标（EMV）—— 衡量成交量与价格波动的关系，判断趋势
+def cal_EMV(high, low, volume, N=14):
+    """计算EMV指标（简易版，14日周期）"""
+    # 步骤1：计算中间价振幅
+    mid_amp = (high + low) / 2 - (high.shift(1) + low.shift(1)) / 2
+    # 步骤2：计算成交量比率
+    vol_ratio = volume / (high - low)
+    # 步骤3：EMV核心值
+    emv = mid_amp / vol_ratio
+    # 步骤4：EMV均线（平滑）
+    emv_ma = emv.rolling(N).mean()
+    return emv.values, emv_ma.values
+
+# 8. 简易波动率（VOLATILITY）—— 收盘价的年化波动率
+def cal_VOLATILITY(close, N=20):
+    """计算20日年化波动率（对数收益率的标准差）"""
+    log_return = np.log(close / close.shift(1))  # 对数收益率
+    volatility = log_return.rolling(N).std() * np.sqrt(252) * 100  # 年化
+    return volatility.values
+
+# 9. 筹码分布相关（成本均线CYC）—— 简化版，按成交量加权的均线
+def cal_CYC(close, volume, N=20):
+    """计算20日成本均线（CYC），成交量加权平均价"""
+    vol_sum = volume.rolling(N).sum()
+    cyc = (close * volume).rolling(N).sum() / (vol_sum + 0.0001)  # 避免除0
+    return cyc.values
+
+# 10. 涨跌比率（ADR）—— 市场整体强弱指标（单只股票简化版）
+def cal_ADR(close, N=10):
+    """单只股票ADR简化版：上涨天数/下跌天数"""
+    df = pd.DataFrame({'close': close})
+    df['change'] = df['close'] - df['close'].shift(1)
+    df['up_day'] = np.where(df['change'] > 0, 1, 0)
+    df['down_day'] = np.where(df['change'] < 0, 1, 0)
+    adr = df['up_day'].rolling(N).sum() / (df['down_day'].rolling(N).sum() + 0.0001)
+    return adr.values
 
 # 读取股票列表 并在网页中全部显示出来
 def showAllStock(filename):
@@ -78,7 +126,7 @@ def showAllStock(filename):
             continue
 
 
-## 抓取某一只ETF基金的趋势图
+## 抓取某一只ETF基金的趋势图  新浪模式
 def showOneETF(code):
     hkmi = ak.fund_etf_hist_sina(symbol=code)
     # fig = px.line(hkmi, x="date", y="close", title=name, subtitle=code)
@@ -125,9 +173,19 @@ def showAllETF(filename):
 
 
 def updateData():
-    # 抓取沪深基金etf并保存在表格中
+    # 抓取沪深基金etf并保存在表格中  新浪
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
     etf.to_csv("sina_etf_list.csv", encoding='utf-8-sig')
+
+    # 抓取沪深基金etf并保存在表格中   东财
+    # etf = ak.fund_etf_spot_em()
+    # etf.to_csv("em_etf_list.csv", encoding='utf-8-sig')
+
+    # 抓取所有开放式基金数据 并保存在表格中  东财
+    fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
+    fund_open_fund_rank_em_df.to_csv("open_etf_list.csv", encoding='utf-8-sig')
+
+
 
     # A 股上市公司的实时行情数据，抓取股票列表
     # 新浪财经-所有 A 股的实时行情数据;
@@ -141,3 +199,5 @@ def updateData():
     # 东方财富-所有 A 股的板块概念名单 题材概念
     concept_em_df = ak.stock_board_concept_name_em()
     concept_em_df.to_csv("concept_em_list.csv", encoding='utf-8-sig')
+
+

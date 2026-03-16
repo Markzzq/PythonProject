@@ -139,7 +139,7 @@ def findGoodETF(filename):
             # 筛选合适的基金
             # 短线反转的etf
             # 计算kdj
-            K, D, J = utils.calKDJ(etf_hist_df)
+            K, D, J = utils.cal_KDJ(etf_hist_df)
 
             # 获取macd指标
             dif, dea, macd = MACD(CLOSE)

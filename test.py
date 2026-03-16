@@ -144,14 +144,14 @@ def findTestTrend():
     df_stock_list = pd.read_csv('stock_zh_list.csv')
     df_stock = df_stock_list[['代码', '名称']][282:]
 
-    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
+    dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
     dfTest = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias'])
 
 
     # 登陆baostock开源库
     lg = bs.login()
 
-    START_DATE = '2025-06-13'
+    START_DATE = '2025-09-13'
     # END_DATE = '2025-08-01'
     END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 
@@ -163,6 +163,17 @@ def findTestTrend():
             # 方法三
             row_code = row['代码'][:2] + "." +  row['代码'][2:]
             row_name = row['名称']
+
+            # 移除北交所股票
+            if row['代码'][:2] == 'bj':
+                print('北交所   out ')
+                continue
+
+            # 移除科创板股票
+            if row['代码'][2:5] == '688':
+                print('688   out ')
+                continue
+
 
             # 日线数据
             """
@@ -192,10 +203,6 @@ def findTestTrend():
                 print('ST   out ')
                 continue
 
-            # 移除科创板股票
-            if row['代码'][2:5] == '688':
-                #print('688   out ')
-                continue
 
             # 多因子标识
             sector = 0
@@ -214,7 +221,7 @@ def findTestTrend():
             MA60 = MA(CLOSE, 60)  # 获取60日均线序列
 
             # 获取macd指标
-            dif, dea, macd = MACD(CLOSE)
+            DIF_, DEA_, MACD_ = MACD(CLOSE)
 
             ma5 = MA5[N - 1]
             ma10 = MA10[N - 1]
@@ -223,34 +230,91 @@ def findTestTrend():
             ma60 = MA60[N - 1]
 
             # 初级数据  布林中轨曲线
-            up, mid, down = BOLL(CLOSE)
+            UP, MID, DOWN = BOLL(CLOSE)
 
             # 计算kdj
-            K, D, J = utils.calKDJ(result)
+            K, D, J = utils.cal_KDJ(result)
 
             # rsi 指标 6 日线
-            rsi6 = RSI(CLOSE, N=6)
-            rsi12 = RSI(CLOSE, N=12)
-            rsi24 = RSI(CLOSE, N=24)
+            RSI6 = RSI(CLOSE, N=6)
+            RSI12 = RSI(CLOSE, N=12)
+            RSI24 = RSI(CLOSE, N=24)
 
             # 量能指标MAVOL
-            volume = result['volume'].astype(float)
-            volume5 = MA(volume, 5)  # 获取5日均线序列
-            volume10 = MA(volume, 10)  # 获取5日均线序列
-            volume_diff = volume5 - volume10
+            VOLUME = result['volume']
+            VOLUME5 = MA(VOLUME, 5)  # 获取5日均线序列
+            VOLUME10 = MA(VOLUME, 10)  # 获取5日均线序列
+            VOLUME_diff = VOLUME5 - VOLUME10
 
             # OBV指标
-            obv = utils.calOBV(result)
+            OBV = utils.cal_OBV(result)
 
             # 短线指标CCI
-            cci = CCI(CLOSE, HIGH, LOW)
+            CCI_ = CCI(CLOSE, HIGH, LOW)
 
             # BRAR  情绪指标
-            ar, br = BRAR(OPEN, CLOSE, HIGH, LOW)
+            AR, BR = BRAR(OPEN, CLOSE, HIGH, LOW)
 
             # 三重指数平滑平均线
-            trix, trma =  TRIX(CLOSE, 12, 9)
-            tr_diff = trix - trma
+            TRIX_, TRMA_ =  TRIX(CLOSE)
+            TR_diff = TRIX_ - TRMA_
+
+
+            ## 其他参考数据
+            # 计算偏离5日线的百分比
+            bias = (float(CLOSE[N - 1]) / ma5 - 1) * 100
+
+            # 股票题材
+            stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
+            keyword = stock_hot_keyword_em_df['概念名称']
+
+
+            # ========== 新增指标计算（可直接添加） ==========
+            # 1. 成交量变异率（VR）—— 量能趋势指标，判断量能与价格的匹配度
+            # 公式：VR = (上涨日成交量总和) / (下跌日成交量总和) * 100
+            VR24 = utils.cal_VR(CLOSE, VOLUME, N=24)
+            VR6 = utils.cal_VR(CLOSE, VOLUME, N=6)
+
+            # 2. 平均真实波幅（ATR）—— 衡量股价波动幅度，判断趋势强度
+            # MyTT库内置ATR函数，参数：最高价、最低价、收盘价、周期
+            ATR14 = ATR(HIGH, LOW, CLOSE, N=14)  # 常用14日周期
+
+            # 3. 动向指标（DMI）—— 判断趋势方向和强度（包含+DI、-DI、ADX）
+            # MyTT库内置DMI函数，返回+DI、-DI、ADX
+            PDI, MDI, ADX = DMI(HIGH, LOW, CLOSE)  # 14日周期
+
+            # 4. 乖离率（BIAS）—— 扩展不同周期，你原有仅计算5日线，补充10/20/60日
+            BIAS5 = (CLOSE / MA5 - 1) * 100  # 你原有bias等价于BIAS5
+            BIAS10 = (CLOSE / MA10 - 1) * 100
+            BIAS20 = (CLOSE / MA20 - 1) * 100
+            BIAS60 = (CLOSE / MA60 - 1) * 100
+
+            # 5. 资金流向指标（MFI）—— 结合量价的资金指标，判断资金进出
+            # MyTT库内置MFI函数，参数：最高价、最低价、收盘价、成交量、周期
+            # MFI14 = MFI(HIGH, LOW, CLOSE, VOLUME, N=14)
+
+            # 6. 威廉指标（WR）—— 超买超卖指标，范围0~-100
+            # MyTT库内置WR函数，参数：最高价、最低价、收盘价、周期
+            WR14 = WR(HIGH, LOW, CLOSE, N=14)  # 14日周期
+            WR6 = WR(HIGH, LOW, CLOSE, N=6)  # 6日短期周期
+
+            # 7. 能量潮指标（EMV）—— 衡量成交量与价格波动的关系，判断趋势
+            # 转换为pandas Series方便计算，再转回numpy数组
+            high_series = pd.Series(HIGH)
+            low_series = pd.Series(LOW)
+            vol_series = pd.Series(VOLUME.astype(float))  # 确保成交量是浮点型
+            EMV, EMV_MA = utils.cal_EMV(high_series, low_series, vol_series, N=14)
+
+            # 8. 简易波动率（VOLATILITY）—— 收盘价的年化波动率
+            close_series = pd.Series(CLOSE)
+            VOLATILITY20 = utils.cal_VOLATILITY(close_series, N=20)
+
+            # 9. 筹码分布相关（成本均线CYC）—— 简化版，按成交量加权的均线
+            CYC20 = utils.cal_CYC(close_series, vol_series, N=20)
+            CYC60 = utils.cal_CYC(close_series, vol_series, N=60)
+
+            # 10. 涨跌比率（ADR）—— 市场整体强弱指标（单只股票简化版）
+            ADR10 = utils.cal_ADR(close_series, N=10)
 
 
             var1 = False
@@ -270,7 +334,7 @@ def findTestTrend():
                 var1 = True
 
             # macd 趋势向上 且dif dea 大于0
-            if macd[N - 1] > 0 and macd[N - 2] > 0 and macd[N - 3] > 0:
+            if MACD_[N - 1] > 0 and MACD_[N - 2] > 0 and MACD_[N - 3] > 0:
                 var2 = True
 
             # if macd[N - 1] > 0 and macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and dif[N-2] > 0:
@@ -285,21 +349,21 @@ def findTestTrend():
                 var4 = True
 
             # obv 指标
-            if obv[N - 1] > 0 and obv[N - 2] > 0 and obv[N-1] > obv[N-2]:
+            if OBV[N - 1] > 0 and OBV[N - 2] > 0 and OBV[N-1] > OBV[N-2]:
                 var7 = True
                 # sector += 1
 
             # BRAR 指标
-            if ar[N-1] > 120 or br[N-1] > 120:
+            if AR[N-1] > 120 or BR[N-1] > 120:
                 var8 = True
                 sector += 1
 
             # CCI 指标
-            if cci[N-1] > 90:
+            if CCI_[N-1] > 90:
                 var9 = True
 
             # RSI 指标
-            if rsi6[N-1] > rsi12[N-1] and rsi12[N-1] > rsi24[N-1]:
+            if RSI6[N-1] > RSI12[N-1] and RSI12[N-1] > RSI24[N-1]:
                 var10 = True
 
             # # 量能指标
@@ -316,38 +380,50 @@ def findTestTrend():
             #     var10 = True
             #     sector += 1    and var3 and var7 and var8 and var9 and var10
 
-            varAll = var1 and var2 and var7 and var8 and var9
+            # ========== 新增筛选条件示例 ==========
+            # 条件11：ATR波动幅度>2（说明股价波动大，有趋势机会）
+            # if atr14 > 2:
+            #     var11 = True
+            #
+            # # 条件12：ADX>25（说明趋势强度足够，ADX越高趋势越明显）
+            # if adx > 25:
+            #     var12 = True
+
+            # 条件13：WR14 < -80（超卖，有反弹可能）
+            if WR14 < -80:
+                var13 = True
+
+            # 条件14：+DI > -DI（趋势向上）且 ADX>20
+            # if pdi > mdi and adx > 20:
+            #     var14 = True
+
+            # 条件15：BIAS20 < -5（20日线乖离率负5，超跌）
+            if BIAS20 < -5:
+                var15 = True
+
+            # # 条件16：MFI14 < 20（资金超卖，资金面有反弹需求）
+            # if mfi14 < 20:
+            #     var16 = True
+
+
 
 
             vartest = var7 and var8 and var9
 
-            ## 其他数据
-            # 计算偏离5日线的百分比
-            bias = (float(CLOSE[N - 1]) / ma5 - 1) * 100
-
-
             if vartest:
-
-                # 股票题材
-                stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
-                keyword = stock_hot_keyword_em_df['概念名称']
-
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
-                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias}
+                anyData = {'stock': row['代码'], 'name': row_name, 'open': result['open'][N - 1], 'close': result['close'][N - 1],
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N - 1], 'bias': bias, '题材': keyword}
                 df_index = row_index + 1
                 dfTest.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
 
             # varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10
+            varAll = var1 and var2 and var7 and var8 and var9
 
             if varAll:
 
-                # 股票题材
-                stock_hot_keyword_em_df = ak.stock_hot_keyword_em(symbol=row['代码'])
-                keyword = stock_hot_keyword_em_df['概念名称']
-
-                anyData = {'stock': row['代码'], 'name': row_name, 'OPEN': result['open'][N - 1], 'CLOSE': result['close'][N - 1],
-                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N-1], 'bias': bias}
+                anyData = {'stock': row['代码'], 'name': row_name, 'open': result['open'][N - 1], 'close': result['close'][N - 1],
+                           'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N - 1], 'bias': bias, '题材': keyword}
                 df_index = row_index + 1
                 dfResult.loc[df_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
@@ -359,12 +435,11 @@ def findTestTrend():
     print(dfResult)
 
     #### 结果集输出到csv文件 ####
-    file_name1 = f"{END_DATE}_wse.csv"
     file_name = f"{END_DATE}_test.csv"
+    file_name1 = f"{END_DATE}_test1.csv"
 
-
-    dfTest.to_csv(file_name1, encoding="utf-8-sig", index=False)
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
+    dfTest.to_csv(file_name1, encoding="utf-8-sig", index=False)
 
     #### 登出系统 ####
     bs.logout()
@@ -773,6 +848,10 @@ def reviewETF(filename):
     dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
     # dfTop.to_csv(top_name, encoding="utf-8-sig", index=False)
     # dfReverse.to_csv(reverse_name, encoding="utf-8-sig", index=False)
+
+
+
+
 
 
 

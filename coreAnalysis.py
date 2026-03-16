@@ -17,20 +17,17 @@ END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 C1 = 1.02
 C2 = 1.01
 
-def stockSearch():
+
+
+## 分析核心板块的股票
+def coreSearch(filename):
     start_time = time.time()
 
     # 读取股票列表   294以前是北交所
-    df_stock_list = pd.read_csv('stock_zh_list.csv')
+    df_stock_list = pd.read_csv('core_stock_list.csv')
     df_stock = df_stock_list[['代码', '名称']]
 
-    # dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
-
-    dfGoodTrendStock = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
-    dfReverseStock = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
-    dfFgStock = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
-
-    dfStockPool = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
+    dfCore = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
 
     # 登陆baostock开源库
     lg = bs.login()
@@ -38,7 +35,7 @@ def stockSearch():
     for row_index, row in df_stock.iterrows():
         try:
             # 方法三
-            row_code = row['代码'][:2] + "." +  row['代码'][2:]
+            row_code = row['代码'][:2] + "." + row['代码'][2:]
             row_name = row['名称']
 
             # 移除北交所股票
@@ -51,14 +48,14 @@ def stockSearch():
                 print('688   out ')
                 continue
 
-            # 日线数据
+            # 周线数据
             """
             adjustflag：复权类型，默认不复权：3, 1：后复权, 2：前复权。已支持分钟线、日线、周线、月线前后复权
             """
             rs = bs.query_history_k_data_plus(row_code,
-                                              "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
-                                              start_date = START_DATE, end_date = END_DATE,
-                                              frequency = "d", adjustflag = "2")
+                                              "date,code,open,high,low,close,volume,amount,adjustflag,turn,pctChg",
+                                              start_date=START_DATE, end_date=END_DATE,
+                                              frequency="w", adjustflag="2")
 
             #### 打印结果集 ####
             data_list = []
@@ -66,18 +63,7 @@ def stockSearch():
                 # 获取一条记录，将记录合并在一起
                 data_list.append(rs.get_row_data())
             result = pd.DataFrame(data_list, columns=rs.fields)
-
             N = result.shape[0]
-
-            # 移除停牌股票
-            if result['tradestatus'][N-1] == '0':
-                print('停牌   out ')
-                continue
-
-            # 移除st 股票
-            if result['isST'][N-1] == '1':
-                print('ST   out ')
-                continue
 
 
             # 读取数据列
@@ -144,7 +130,6 @@ def stockSearch():
             anyData = {'stock': row['代码'], 'name': row_name, 'open': result['open'][N - 1],'close': result['close'][N - 1],
                        'pctChg': result['pctChg'][N - 1], 'turn': result['turn'][N - 1], 'bias': bias, '题材': keyword}
 
-
             var1 = False
             var2 = False
             var3 = False
@@ -155,26 +140,14 @@ def stockSearch():
             var8 = False
             var9 = False
             var10 = False
-            var11 = False
-            var12 = False
-
-            var21 = False
-            var22 = False
-            var23 = False
-            var24 = False
-            var25 = False
-            var26 = False
-            var27 = False
-
-
 
             ######################## 策略1：均线多头
             # 均线多头展开
-            if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30:
+            if ma5 > ma10:
                 var1 = True
 
             # macd 趋势向上
-            if MACD_[N - 1] > 0 and MACD_[N - 1] >= MACD_[N - 2] and MACD_[N - 2] >= MACD_[N - 3] and MACD_[N - 3] >= MACD_[N - 4]:
+            if MACD_[N - 1] > 0 and MACD_[N - 1] >= MACD_[N - 2] and MACD_[N - 2] >= MACD_[N - 3]:
                 var2 = True
 
             # dif 趋势向上
@@ -185,7 +158,7 @@ def stockSearch():
             if DEA_[N - 1] > DEA_[N - 2] and DEA_[N - 2] > DEA_[N - 3] and DEA_[N - 3] > DEA_[N - 4]:
                 var4 = True
 
-            if DIF_[N - 1] > 0 and DEA_[N - 1] > 0:
+            if DIF_[N - 1] > DEA_[N - 1]:
                 var5 = True
 
             # Using zip() and all() to Check for strictly increasing list
@@ -196,9 +169,8 @@ def stockSearch():
             if J[N-1] > K[N-1] and K[N-1] > D[N-1]:
                 var7 = True
 
-            # 换手率指标是否有用  ？？
-            turnrate = float(result['turn'][N-1])
-            if turnrate > 4:
+            # RSI指标
+            if RSI6[N-1] > RSI12[N-1] and RSI12[N-1] > RSI24[N-1]:
                 var8 = True
 
             # 量能指标
@@ -210,79 +182,12 @@ def stockSearch():
             if OBV[N - 1] > 0 and OBV[N - 2] > 0 and OBV[N-1] > OBV[N-2]:
                 var10 = True
 
-            if CCI_[N-1] > 120:
-                var11 = True
-
-            if AR[N-1] > 120 and BR[N-1]> 120:
-                var12 = True
-
-            varAll = var1 and var2 and var3 and var4 and var5 and var6 and var7 and var8 and var9 and var10 and var11 and var12
+            varAll = var1 and var2 and var5 and var7
 
             if varAll:
 
                 good_index = row_index + 1
-                dfGoodTrendStock.loc[good_index] = anyData
-                print('success add one', row['代码'][2:], row_name)
-
-
-
-
-            ################################### 策略2：触底反弹
-            # 均线多头排列
-            if ma5 > C1 * ma10 and ma10 > C2 * ma20 and ma20 > C2 * ma30:
-                var21 = True
-
-            # macd 趋势向上 且dif dea 大于0
-            if MACD_[N - 1] > 0 and MACD_[N - 1] >= MACD_[N - 2] and MACD_[N - 2] >= MACD_[N - 3] and DIF_[N-2] > 0:
-                var22 = True
-
-            # 判断KDJ 指标变化
-            if J[N-1] > K[N-1] and K[N-1] > D[N-1] and J[N-1]>60 and K[N-1]>50:
-                var23 = True
-
-            # obv 指标
-            if OBV[N - 1] > 0 and OBV[N - 2] > 0 and OBV[N-1] > OBV[N-2]:
-                var24 = True
-
-            # BRAR 指标
-            if AR[N-1] > 130 or BR[N-1] > 130:
-                var25 = True
-
-            # CCI 指标
-            if CCI_[N-1] > 90:
-                var26 = True
-
-            # RSI 指标
-            if RSI6[N-1] > RSI12[N-1] and RSI12[N-1] > RSI24[N-1]:
-                var27 = True
-
-
-            varR = var21 and var22 and var23 and var24 and var25 and var26 and var27
-
-            if varR:
-
-                reverse_index = row_index + 1
-                dfReverseStock.loc[reverse_index] = anyData
-                print('success add one', row['代码'][2:], row_name)
-
-
-
-
-
-            # 策略：fg严选
-
-
-
-
-
-
-            # 策略：股票池
-            varP = var1 and var2 and var3 and var7 and var8 and var9 and var10
-
-            if varP:
-
-                pool_index = row_index + 1
-                dfStockPool.loc[pool_index] = anyData
+                dfCore.loc[good_index] = anyData
                 print('success add one', row['代码'][2:], row_name)
 
 
@@ -290,33 +195,30 @@ def stockSearch():
         except:
             continue
 
-    # print(dfResult)
-
-    #### 结果集输出到csv文件 ####
-    file_GoodTrend = f"{END_DATE}_Stock_Good.csv"
-    file_Reverse = f"{END_DATE}_Stock_Reverse.csv"
-    file_FG = f"{END_DATE}_Stock_FG.csv"
-
-    file_StockPool = f"stock_pool.csv"
-
-
-
-
-    #dfResult.to_csv(file_name, encoding="gbk", index=False)
-    dfGoodTrendStock.to_csv(file_GoodTrend, encoding="utf-8-sig", index=False)
-    dfReverseStock.to_csv(file_Reverse, encoding="utf-8-sig", index=False)
-    # dfFgStock.to_csv(file_FG, encoding="utf-8-sig", index=False)
-
-    dfStockPool.to_csv(file_StockPool, encoding="utf-8-sig", index=False)
-
-
     #### 登出系统 ####
     bs.logout()
 
     end_time = time.time()
-    print(f"findStock 运行时间：{end_time - start_time} 秒")
+    print(f"coreAnalysis运行时间：{end_time - start_time}秒")
+
+    #### 结果集输出到csv文件 ####
+    file_Name = f"{END_DATE}_Stock_Core.csv"
+
+    dfCore.to_csv(file_Name, encoding="utf-8-sig", index=False)
+
+
+
+
 
 
 if __name__ == '__main__':
 
-    stockSearch()
+    coreSearch('core_stock_list.csv')
+
+
+
+
+
+
+
+

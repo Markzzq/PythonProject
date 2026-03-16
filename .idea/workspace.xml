@@ -4,16 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20260117&#10;修正了一下部分函数&#10;修正了代码结构">
-      <change afterPath="$PROJECT_DIR$/findStock.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/updateStockPool.py" afterDir="false" />
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20260227&#10;修正了一下部分函数&#10;修正了代码结构">
+      <change afterPath="$PROJECT_DIR$/coreAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/findETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findStock.py" beforeDir="false" afterPath="$PROJECT_DIR$/findStock.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sina_etf_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/sina_etf_list.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/stock_zh_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/stock_zh_list.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,6 +66,7 @@
     &quot;Python.bstock.executor&quot;: &quot;Run&quot;,
     &quot;Python.conceptdayreview.executor&quot;: &quot;Debug&quot;,
     &quot;Python.conceptreview.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.coreAnalysis.executor&quot;: &quot;Debug&quot;,
     &quot;Python.dailyreview.executor&quot;: &quot;Run&quot;,
     &quot;Python.daybacktest.executor&quot;: &quot;Debug&quot;,
     &quot;Python.etf.executor&quot;: &quot;Debug&quot;,
@@ -247,7 +247,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768647828738</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="update  20260227&#10;修正了一下部分函数&#10;修正了代码结构">
+      <option name="closed" value="true" />
+      <created>1772183079205</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1772183079205</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -273,7 +281,8 @@
     <MESSAGE value="update  20251109&#10;修正了一下部分函数&#10;修正了代码结构" />
     <MESSAGE value="update  20251216&#10;修正了一下部分函数&#10;修正了代码结构" />
     <MESSAGE value="update  20260117&#10;修正了一下部分函数&#10;修正了代码结构" />
-    <option name="LAST_COMMIT_MESSAGE" value="update  20260117&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <MESSAGE value="update  20260227&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <option name="LAST_COMMIT_MESSAGE" value="update  20260227&#10;修正了一下部分函数&#10;修正了代码结构" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
