@@ -17,11 +17,11 @@ END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
 C1 = 1.02
 C2 = 1.01
 
-def stockSearch():
+def stockSearch(filename):
     start_time = time.time()
 
     # 读取股票列表   294以前是北交所
-    df_stock_list = pd.read_csv('stock_zh_list.csv')
+    df_stock_list = pd.read_csv(filename)
     df_stock = df_stock_list[['代码', '名称']]
 
     # dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
@@ -319,4 +319,4 @@ def stockSearch():
 
 if __name__ == '__main__':
 
-    stockSearch()
+    stockSearch('stock_A_list.csv')

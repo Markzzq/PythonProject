@@ -65,7 +65,7 @@ def get_price(code, end_date='',count=10, frequency='1d', fields=[]):        #�
 
 # 实时读取日内分时数据
 def task():
-    df_stock_list = pd.read_csv('stock_zh_list.csv')
+    df_stock_list = pd.read_csv('stock_A_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:350]
 
     for row_index, row in df_stock.iterrows():

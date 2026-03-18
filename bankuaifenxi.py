@@ -23,7 +23,7 @@ Cd = 1.02
 
 if __name__ == '__main__':
 
-    df_etf_list = pd.read_csv('sina_etf_list.csv')
+    df_etf_list = pd.read_csv('etf_sina_list.csv')
     df_etf = df_etf_list[['代码', '名称']]
 
     anyData = {'stock': '00', 'name': 'name','OPEN': 'open', 'CLOSE': 'close'}

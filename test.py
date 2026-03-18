@@ -141,7 +141,7 @@ def findTestTrend():
     start_time = time.time()
 
     # 读取股票列表
-    df_stock_list = pd.read_csv('stock_zh_list.csv')
+    df_stock_list = pd.read_csv('stock_A_list.csv')
     df_stock = df_stock_list[['代码', '名称']][282:]
 
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'open', 'close', 'pctChg', 'turn', 'bias', '题材'])
@@ -459,7 +459,7 @@ def findTrend():
     start_time = time.time()
 
     # 读取股票列表
-    df_stock_list = pd.read_csv('stock_zh_list.csv')
+    df_stock_list = pd.read_csv('stock_A_list.csv')
     df_stock = df_stock_list[['代码', '名称']][266:]
 
     dfResult = pd.DataFrame(data=None, columns=['stock', 'name', 'OPEN', 'CLOSE', 'pctChg', 'turn', 'bias', 'obv1', 'obv2'])
@@ -871,5 +871,5 @@ if __name__ == '__main__':
     #
     # utils.showAllStock('2025-10-22_bottom_stock.csv')
 
-    # reviewETF('sina_etf_list.csv')
+    # reviewETF('etf_sina_list.csv')
 

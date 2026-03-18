@@ -90,12 +90,6 @@ if __name__ == '__main__':
     # df = get_price('000001.XSHG', frequency='15m', count=10)  # 支持'1m','5m','15m','30m','60m'
     # print('上证指数分钟线\n', df)
 
-    # 权重股更新
-    # coreSearch('core_stock_list.csv')
-
-    # 更新 股票和etf备选列表
-    # utils.updateData()
-
     # 读取股票列表 并在网页中全部显示出来
     # utils.showAllStock('2026-03-08_Stock_Core.csv')
 
@@ -105,8 +99,14 @@ if __name__ == '__main__':
     # 抓取某一组etf的图像
     # utils.showAllETF('2025-10-22_topETF.csv')
 
+    # 权重股更新
+    # coreSearch('stock_core_list.csv')
+
+    # 更新 股票和etf备选列表
+    utils.updateData()
+
     # 当然开放式基金更新
-    fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
-    fund_open_fund_rank_em_df.to_csv("open_etf_list.csv", encoding='utf-8-sig')
+    # fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
+    # fund_open_fund_rank_em_df.to_csv("etf_open_list.csv", encoding='utf-8-sig')
 
 

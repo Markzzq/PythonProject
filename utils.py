@@ -96,6 +96,9 @@ def cal_ADR(close, N=10):
     adr = df['up_day'].rolling(N).sum() / (df['down_day'].rolling(N).sum() + 0.0001)
     return adr.values
 
+
+
+
 # 读取股票列表 并在网页中全部显示出来
 def showAllStock(filename):
     # 读取股票列表
@@ -172,25 +175,28 @@ def showAllETF(filename):
     return None
 
 
+
+
+
 def updateData():
     # 抓取沪深基金etf并保存在表格中  新浪
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
-    etf.to_csv("sina_etf_list.csv", encoding='utf-8-sig')
+    etf.to_csv("etf_sina_list.csv", encoding='utf-8-sig')
 
     # 抓取沪深基金etf并保存在表格中   东财
     # etf = ak.fund_etf_spot_em()
-    # etf.to_csv("em_etf_list.csv", encoding='utf-8-sig')
+    # etf.to_csv("etf_em_list.csv", encoding='utf-8-sig')
 
     # 抓取所有开放式基金数据 并保存在表格中  东财
     fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
-    fund_open_fund_rank_em_df.to_csv("open_etf_list.csv", encoding='utf-8-sig')
+    fund_open_fund_rank_em_df.to_csv("etf_open_list.csv", encoding='utf-8-sig')
 
 
 
     # A 股上市公司的实时行情数据，抓取股票列表
     # 新浪财经-所有 A 股的实时行情数据;
     stock_zh_a_spot_df = ak.stock_zh_a_spot()
-    stock_zh_a_spot_df.to_csv("stock_zh_list.csv", encoding='utf-8-sig')
+    stock_zh_a_spot_df.to_csv("stock_A_list.csv", encoding='utf-8-sig')
 
     # 同花顺-所有 A 股的板块概念名单 题材概念
     concept_zh_a_spot_df = ak.stock_board_concept_name_ths()

@@ -213,7 +213,7 @@ def coreSearch(filename):
 
 if __name__ == '__main__':
 
-    coreSearch('core_stock_list.csv')
+    coreSearch('stock_core_list.csv')
 
 
 
