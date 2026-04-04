@@ -3,98 +3,116 @@ import pandas as pd
 import datetime
 import time
 
-# plotly   一种滑动窗口绘图库
-import plotly.express as px
-import plotly.graph_objects as go
-
-# matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
-
 # 股市行情数据获取和作图 -2
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
 
-
-START_DATE = '2025-03-13'
+START_DATE = '2025-12-01'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
+
 Cd = 1.02
 
 
+def analyze_concept(filename):
+    """分析概念板块数据"""
+    start_time = time.time()
+    
+    try:
+        # 读取概念板块列表
+        df_concept_list = pd.read_csv(filename)
+        df_concept = df_concept_list[['code', 'name']]
+        
+        # 初始化结果DataFrame
+        dfResult = pd.DataFrame(columns=['code', 'name', '收盘价', '涨跌幅', 'MA5'])
+        
+        for row_index, row in df_concept.iterrows():
+            try:
+                # time.sleep(0.5)  # 避免请求过快
+                
+                # 获取概念代码和名称
+                concept_code = row['code']
+                concept_name = row['name']
+                
+                # 获取概念板块指数数据（至少120天）
+                concept_data = ak.stock_board_concept_index_ths(symbol=concept_name,
+                                                               start_date=START_DATE, 
+                                                               end_date=END_DATE)
+                
+                if concept_data.empty:
+                    print(f"{concept_name} ({concept_code}) 无数据，跳过")
+                    continue
+                
+                N = concept_data.shape[0]
+                if N < 60:
+                    print(f"{concept_name} ({concept_code}) 数据不足60天，跳过")
+                    continue
+                
+                # 计算技术指标
+                CLOSE = concept_data['收盘价'].astype(float)
+                OPEN = concept_data['开盘价'].astype(float)
+                
+                # 计算均线
+                MA5 = MA(CLOSE, 5)  # 5日均线
+                MA10 = MA(CLOSE, 10)  # 10日均线
+                MA20 = MA(CLOSE, 20)  # 20日均线
+                MA60 = MA(CLOSE, 60)  # 60日均线
+                
+                # 计算MACD指标
+                dif, dea, macd = MACD(CLOSE)
+                
+                # 计算RSI指标
+                rsi6 = RSI(CLOSE, N=6)
+                rsi12 = RSI(CLOSE, N=12)
+                rsi24 = RSI(CLOSE, N=24)
+                
+                # 初始化条件变量
+                close_above_ma5 = False
+                
+                # 判断今日收盘价大于MA5
+                if N >= 5:
+                    # 确保有足够的数据点计算MA5
+                    if CLOSE[N-1] > MA5[N-1]:
+                        close_above_ma5 = True
+                
+                # 综合条件判断
+                if close_above_ma5:
+                    # 计算涨跌幅
+                    pct_change = (CLOSE[N-1] - CLOSE[N-2]) / CLOSE[N-2] * 100
+                    
+                    # 添加到结果集
+                    anyData = {
+                        'code': concept_code,
+                        'name': concept_name,
+                        '收盘价': CLOSE[N-1],
+                        '涨跌幅': round(pct_change, 2),
+                        'MA5': round(MA5[N-1], 2)
+                    }
+                    reverse_index = row_index + 1
+                    dfResult.loc[reverse_index] = anyData
+                    print('success add one', concept_code, concept_name)
+                    
+            except Exception as e:
+                print(f"处理 {row['code']} 时出错: {e}")
+                continue
+        
+        # 输出结果到以当天日期命名的csv文件
+        print(dfResult)
+        file_name = f"{END_DATE}_concept.csv"
+        dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
+        print(f"结果已保存到 {file_name}")
+        
+    except Exception as e:
+        print(f"分析过程中出错: {e}")
+    
+    end_time = time.time()
+    print(f"analyze_concept运行时间：{end_time - start_time}秒")
+
+
+def main():
+    """主函数"""
+    # 分析概念板块数据
+    analyze_concept('concept_ths_list.csv')
+
+
 if __name__ == '__main__':
-
-    df_etf_list = pd.read_csv('etf_sina_list.csv')
-    df_etf = df_etf_list[['代码', '名称']]
-
-    anyData = {'stock': '00', 'name': 'name','OPEN': 'open', 'CLOSE': 'close'}
-    dfResult = pd.DataFrame(anyData, index=[0])
-
-    for row_index, row in df_etf.iterrows():
-        try:
-            #time.sleep(0.5)
-
-            # 方法三
-            etf_code = row['代码']
-            etf_name = row['名称']
-
-
-            # 日线数据
-            # 抓取某一只ETF基金的趋势图
-            hkmi = ak.fund_etf_hist_sina(symbol = etf_code)
-
-            # 计算初级数据  均线策略因子
-            CLOSE = hkmi['close']
-            MA5 = MA(CLOSE, 5)  # 获取5日均线序列
-            MA10 = MA(CLOSE, 10)  # 获取5日均线序列
-            MA20 = MA(CLOSE, 20)  # 获取20日均线序列
-            MA30 = MA(CLOSE, 30)  # 获取30日均线序列
-            MA60 = MA(CLOSE, 60)  # 获取60日均线序列
-
-            N = hkmi.shape[0]
-
-            var1 = False
-            var2 = False
-            var3 = False
-            var4 = False
-            var5 = False
-
-            # 获取macd指标
-            dif, dea, macd = MACD(CLOSE)
-
-            # macd 趋势向上
-            if macd[N - 1] >= macd[N - 2] and macd[N - 2] >= macd[N - 3] and macd[N - 3] >= macd[N - 4]:
-                var1 = True
-
-            # 判断5日均线趋势递增 连续3日
-            var2 = all(i < j for i, j in zip(MA5[N-4:N-1], MA5[N-4:N-1][1:]))
-
-
-            varAll = var1 and var2
-
-            if varAll:
-                anyData = {'stock': etf_code, 'name': etf_name,'OPEN': hkmi['open'][N-1], 'CLOSE': hkmi['close'][N-1]}
-                df_index = row_index + 1
-                dfResult.loc[df_index] = anyData
-                print('success add one', etf_code, etf_name)
-
-            # fig = px.line(hkmi, x="date", y="close", title = etf_name)
-            # fig.add_trace(go.Scatter(x=[hkmi['date'].iloc[-1]],
-            #                          y=[hkmi['close'].iloc[-1]],
-            #                          text=[hkmi['date'].iloc[-1]],
-            #                          mode='markers+text',
-            #                          marker=dict(color='red', size=10),
-            #                          textfont=dict(color='green', size=10),
-            #                          textposition='top left',
-            #                          showlegend=False))
-            # fig.show()
-
-
-
-        except:
-            continue
-
-    print(dfResult)
-    #### 结果集输出到csv文件 ####
-    file_name = f"{END_DATE}_etf_data.csv"
-    #dfResult.to_csv(file_name, encoding="gbk", index=False)
-    dfResult.to_csv(file_name, encoding="utf-8-sig", index=False)
+    main()

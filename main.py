@@ -110,3 +110,8 @@ if __name__ == '__main__':
     # fund_open_fund_rank_em_df.to_csv("etf_open_list.csv", encoding='utf-8-sig')
 
 
+    # df_stock_list = pd.read_csv('stock_core_list.csv',encoding="utf-8-sig")
+    # df_stock_list.to_csv('stock_core_list.csv', encoding="utf-8-sig", index=False)
+
+
+

@@ -16,6 +16,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 
+# 多线程
+import threading
+import os
+
 
 def cal_KDJ(df):
     # 要把close 中的字符转数字格式 才能进行计算
@@ -88,7 +92,7 @@ def cal_CYC(close, volume, N=20):
 
 # 10. 涨跌比率（ADR）—— 市场整体强弱指标（单只股票简化版）
 def cal_ADR(close, N=10):
-    """单只股票ADR简化版：上涨天数/下跌天数"""
+    """单只股票ADR简化版:上涨天数/下跌天数"""
     df = pd.DataFrame({'close': close})
     df['change'] = df['close'] - df['close'].shift(1)
     df['up_day'] = np.where(df['change'] > 0, 1, 0)
@@ -178,32 +182,54 @@ def showAllETF(filename):
 
 
 
-def updateData():
-    # 抓取沪深基金etf并保存在表格中  新浪
+
+def fetch_etf_sina():
+    """抓取沪深基金etf并保存在表格中  新浪"""
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
     etf.to_csv("etf_sina_list.csv", encoding='utf-8-sig')
 
-    # 抓取沪深基金etf并保存在表格中   东财
-    # etf = ak.fund_etf_spot_em()
-    # etf.to_csv("etf_em_list.csv", encoding='utf-8-sig')
+def fetch_etf_em():
+    """抓取沪深基金etf并保存在表格中  东财"""
+    # 东材接口好像暂时连不上了
+    etf = ak.fund_etf_spot_em()
+    etf.to_csv("etf_em_list.csv", encoding='utf-8-sig')
 
-    # 抓取所有开放式基金数据 并保存在表格中  东财
+def fetch_open_fund():
+    """抓取所有开放式基金数据 并保存在表格中  东财"""
     fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
     fund_open_fund_rank_em_df.to_csv("etf_open_list.csv", encoding='utf-8-sig')
 
-
-
-    # A 股上市公司的实时行情数据，抓取股票列表
-    # 新浪财经-所有 A 股的实时行情数据;
+def fetch_stock_a():
+    """A 股上市公司的实时行情数据，抓取股票列表  同花顺"""
     stock_zh_a_spot_df = ak.stock_zh_a_spot()
     stock_zh_a_spot_df.to_csv("stock_A_list.csv", encoding='utf-8-sig')
 
-    # 同花顺-所有 A 股的板块概念名单 题材概念
+def fetch_concept_ths():
+    """同花顺-所有 A 股的板块概念名单 题材概念  同花顺"""
     concept_zh_a_spot_df = ak.stock_board_concept_name_ths()
     concept_zh_a_spot_df.to_csv("concept_ths_list.csv", encoding='utf-8-sig')
 
-    # 东方财富-所有 A 股的板块概念名单 题材概念
+def fetch_concept_em():
+    """东方财富-所有 A 股的板块概念名单 题材概念"""
+    # 东材接口好像暂时连不上了
     concept_em_df = ak.stock_board_concept_name_em()
     concept_em_df.to_csv("concept_em_list.csv", encoding='utf-8-sig')
+
+def updateData():
+    # 创建线程
+    threads = [
+        threading.Thread(target=fetch_etf_sina),
+        threading.Thread(target=fetch_open_fund),
+        threading.Thread(target=fetch_stock_a),
+        threading.Thread(target=fetch_concept_ths),
+    ]
+    
+    # 启动所有线程
+    for thread in threads:
+        thread.start()
+    
+    # 等待所有线程完成
+    for thread in threads:
+        thread.join()
 
 

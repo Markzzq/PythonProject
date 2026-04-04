@@ -62,7 +62,7 @@
   `utils.showAllETF('2025-10-22_topETF.csv')` → 抓取某一组etf的图像
 
 - **数据更新**  
-  `updataData()` → 数据集更新
+  `utils.updataData()` → 数据集更新
 
 ## 数据集
 - **etf_sina_list**  
