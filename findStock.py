@@ -34,6 +34,9 @@ def stockSearch(filename):
 
     # 登陆baostock开源库
     lg = bs.login()
+    # 显示登陆返回信息
+    print('login respond error_code:'+lg.error_code)
+    print('login respond  error_msg:'+lg.error_msg)
 
     for row_index, row in df_stock.iterrows():
         try:
