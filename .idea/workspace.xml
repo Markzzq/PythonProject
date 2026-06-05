@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20260318&#10;修正了一下部分函数&#10;修正了代码结构">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20260517">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/findStock.py" beforeDir="false" afterPath="$PROJECT_DIR$/findStock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +35,10 @@
     &quot;accountId&quot;: &quot;c681381a-0aff-4b36-b46c-ee0c83cce407&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/.venv/Lib/site-packages/akquant/backtest/engine.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/.venv/Lib/site-packages/akshare/stock/stock_zh_a_sina.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -65,10 +69,13 @@
     "Python.etf.executor": "Debug",
     "Python.findETF.executor": "Run",
     "Python.findStock.executor": "Debug",
+    "Python.findTrend.executor": "Run",
     "Python.findbottom.executor": "Debug",
     "Python.findcross.executor": "Debug",
     "Python.main.executor": "Run",
+    "Python.moneyflow.executor": "Debug",
     "Python.quant.executor": "Run",
+    "Python.quanttest.executor": "Run",
     "Python.quicksearch.executor": "Debug",
     "Python.run.executor": "Run",
     "Python.stock_basic_update.executor": "Run",
@@ -86,7 +93,7 @@
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/zhuziqian/PycharmProjects/PythonProject",
-    "settings.editor.selected.configurable": "configurable.group.editor",
+    "settings.editor.selected.configurable": "preferences.editor",
     "settings.editor.splitter.proportion": "0.27596742"
   },
   "keyToStringList": {
@@ -267,7 +274,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773847915236</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="update  20260517">
+      <option name="closed" value="true" />
+      <created>1778950907443</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1778950907443</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -296,7 +311,8 @@
     <MESSAGE value="update  20260227&#10;修正了一下部分函数&#10;修正了代码结构" />
     <MESSAGE value="update  20260317&#10;修正了一下部分函数&#10;修正了代码结构" />
     <MESSAGE value="update  20260318&#10;修正了一下部分函数&#10;修正了代码结构" />
-    <option name="LAST_COMMIT_MESSAGE" value="update  20260318&#10;修正了一下部分函数&#10;修正了代码结构" />
+    <MESSAGE value="update  20260517" />
+    <option name="LAST_COMMIT_MESSAGE" value="update  20260517" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

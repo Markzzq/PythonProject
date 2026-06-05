@@ -3,7 +3,7 @@
 import threading
 import os
 
-# 定义执行的线程
+# 定义执行的文件多线程
 def run_script(script_name):
     os.system(f'python {script_name}')
 
@@ -11,7 +11,7 @@ def run_script(script_name):
 if __name__ == "__main__":
 
     # python队列
-    scripts = ['findStock.py', 'findETF.py']   # weekReview.py
+    scripts = ['findETF.py', 'findTrend.py', 'main.py']   # weekReview.py
     # 线程队列
     threads = []
 
