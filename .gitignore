@@ -1,2 +1,10 @@
 .env
+__pycache__/
+*.pyc
+*.pyo
+.pybrokercache/
+*.xlsx
+*.csv
+database_update/logs/
+
 

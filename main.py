@@ -23,7 +23,6 @@ import coreAnalysis
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
 
-
 # plotly   一种滑动窗口绘图库
 import plotly.express as px
 import plotly.graph_objects as go
