@@ -182,5 +182,85 @@ def MTM(CLOSE,N=12,M=6):                             #动量指标
 def ROC(CLOSE,N=12,M=6):                             #变动率指标
     ROC=100*(CLOSE-REF(CLOSE,N))/REF(CLOSE,N);    MAROC=MA(ROC,M)
     return ROC,MAROC  
-  
+
+#------------------   扩展指标函数(参考东方财富、论文标准公式) ------------------------------
+
+def MFI(CLOSE,HIGH,LOW,VOL,N=14):                    #资金流量指标(MFI)
+    TP=(HIGH+LOW+CLOSE)/3                            #典型价格
+    MF=TP*VOL                                        #资金流量
+    PMF=SUM(IF(TP>REF(TP,1),MF,0),N)                #正资金流量
+    NMF=SUM(IF(TP<REF(TP,1),MF,0),N)                #负资金流量
+    MFI=100-PMF/(PMF+NMF)*100                        #资金流量指标
+    return RD(MFI)
+
+def OBV(CLOSE,VOL):                                   #能量潮指标(OBV)
+    return SUM(IF(CLOSE>REF(CLOSE,1),VOL,-VOL),len(CLOSE))
+
+def SAR(HIGH,LOW,N=4,M=0.02,MMAX=0.2):               #抛物转向指标(SAR)
+    sar=np.copy(LLV(LOW,N))                          #初始SAR，复制数组使其可变
+    ep=np.copy(HHV(HIGH,N))                          #极点价格，复制数组使其可变
+    af=M                                             #加速因子
+    for i in range(N,len(HIGH)):
+        sar[i]=sar[i-1]+af*(ep[i-1]-sar[i-1])
+        if HIGH[i]>ep[i-1]:
+            ep[i]=HIGH[i]
+            af=MIN(af+M,MMAX)
+        elif LOW[i]<sar[i]:
+            sar[i]=ep[i-1]
+            ep[i]=LOW[i]
+            af=M
+        else:
+            ep[i]=ep[i-1]
+    return RD(sar)
+
+def CR(HIGH,LOW,OPEN,N=26,M1=10,M2=20,M3=40,M4=62): #带状能量指标(CR)
+    MID=(HIGH+LOW+OPEN)/3                            #中间价
+    up_sum=SUM(MAX(0,MID-REF(MID,1)),N)              #上涨力度和
+    dn_sum=SUM(MAX(0,REF(MID,1)-MID),N)              #下跌力度和
+    dn_sum=np.where(dn_sum==0,1,dn_sum)              #分母为0时设为1
+    CR=up_sum/dn_sum*100
+    MA1=MA(CR,M1); MA2=MA(CR,M2); MA3=MA(CR,M3); MA4=MA(CR,M4)
+    return RD(CR),RD(MA1),RD(MA2),RD(MA3),RD(MA4)
+
+def WAD(HIGH,LOW,CLOSE,OPEN):                        #威廉多空力度线(WAD)
+    TR=MAX(MAX(HIGH-LOW,ABS(HIGH-REF(CLOSE,1))),ABS(LOW-REF(CLOSE,1)))
+    return SUM(IF(CLOSE>OPEN,HIGH-OPEN,IF(CLOSE<OPEN,LOW-OPEN,0)),len(CLOSE))
+
+def TEMA(CLOSE,N=12):                                #三重指数移动平均(TEMA)
+    EMA1=EMA(CLOSE,N)
+    EMA2=EMA(EMA1,N)
+    EMA3=EMA(EMA2,N)
+    TEMA=3*EMA1-3*EMA2+EMA3                         #TEMA=3*EMA1-3*EMA2+EMA3
+    return RD(TEMA)
+
+def MIDPRICE(HIGH,LOW,N=14):                         #中间价指标(MIDPRICE)
+    return MA((HIGH+LOW)/2,N)
+
+def VWAP(CLOSE,VOL,N=20):                            #成交量加权平均价(VWAP)
+    return SUM(CLOSE*VOL,N)/SUM(VOL,N)
+
+def CMF(HIGH,LOW,CLOSE,VOL,N=20):                    #蔡金资金流(CMF)
+    MF=(CLOSE-LOW)-(HIGH-CLOSE)                      #资金流
+    range_val=HIGH-LOW                               #波动范围
+    range_val=np.where(range_val==0,1,range_val)     #平盘时设为1避免除零
+    MF=MF/range_val*VOL                              #资金流*成交量
+    return SUM(MF,N)/SUM(VOL,N)                      #累计资金流/累计成交量
+
+def EMACROSS(CLOSE,SHORT=12,LONG=26):                #EMA金叉死叉判断
+    EMA_SHORT=EMA(CLOSE,SHORT)
+    EMA_LONG=EMA(CLOSE,LONG)
+    return CROSS(EMA_SHORT,EMA_LONG)
+
+def MACDCROSS(CLOSE,SHORT=12,LONG=26,M=9):           #MACD金叉死叉判断
+    DIF=EMA(CLOSE,SHORT)-EMA(CLOSE,LONG)
+    DEA=EMA(DIF,M)
+    return CROSS(DIF,DEA)
+
+def VOLRATIO(VOL,N=5):                               #成交量比率
+    return VOL/MA(VOL,N)
+
+def PRICEVOLUME(CLOSE,VOL,N=14):                     #价量配合指标
+    return SUM(IF(CLOSE>REF(CLOSE,1),VOL,0),N)/SUM(VOL,N)*100
+
+
   #望大家能提交更多指标和函数  https://github.com/mpquant/MyTT

@@ -4,6 +4,7 @@
 - **每日分析**  
   `run.py`多线程脚本运行每日分析
 
+
 ## 开源库
 - **Ashare**  
   `Ashare.py`开源库调用接口  查etf比较好 因为股票日内会限制次数
@@ -37,8 +38,6 @@
   `findStock.py` → 股票走势展示/条件筛选 → 输出结果: `所有策略的股票按照列表输出`
 - 
 ## 集成功能utils
-
-
 - **特殊指标计算**  
   `calKDJ()` → 计算kdj
 - **特殊指标计算**  
@@ -64,8 +63,23 @@
 - **数据更新**  
   `utils.updataData()` → 数据集更新
 
+## 数据库相关功能database
+- **数据更新入库**
+  'database.update_stock_daily_data()'  → 股票入数据库更新
+  'database.update_etf_daily_data()'   → ETF入数据库更新
+
+单个更新
+stock_to_mysql
+etf_to_mysql 
+
 ## 数据集
 - **etf_sina_list**  
-  基金列表数据
+  场内基金列表数据
+- **etf_open_list**  
+  开放基金列表数据
+- **etf_core_list**  
+  场内行业基金列表数据
 - **stock_A_list**  
   A股股票列表数据
+- **stock_A_list**  
+  A股核心股票列表数据

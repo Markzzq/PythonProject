@@ -182,7 +182,7 @@ def showAllETF(filename):
 
 
 
-
+# 更新数据文件 股票列表  etf列表
 def fetch_etf_sina():
     """抓取沪深基金etf并保存在表格中  新浪"""
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
@@ -190,7 +190,7 @@ def fetch_etf_sina():
 
 def fetch_etf_em():
     """抓取沪深基金etf并保存在表格中  东财"""
-    # 东材接口好像暂时连不上了
+    # 东财接口好像暂时连不上了
     etf = ak.fund_etf_spot_em()
     etf.to_csv("etf_em_list.csv", encoding='utf-8-sig')
 
@@ -211,7 +211,7 @@ def fetch_concept_ths():
 
 def fetch_concept_em():
     """东方财富-所有 A 股的板块概念名单 题材概念"""
-    # 东材接口好像暂时连不上了
+    # 东财接口好像暂时连不上了
     concept_em_df = ak.stock_board_concept_name_em()
     concept_em_df.to_csv("concept_em_list.csv", encoding='utf-8-sig')
 

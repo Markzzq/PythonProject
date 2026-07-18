@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\etf_analysis_20260718_222453.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\etf_core_list.csv">
           <value>
             <Attribute>

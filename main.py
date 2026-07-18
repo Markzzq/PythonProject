@@ -18,6 +18,7 @@ import pandas as pd
 import baostock as bs
 
 import utils
+import database
 import coreAnalysis
 # 股市行情数据获取和作图 -2
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
@@ -103,6 +104,11 @@ if __name__ == '__main__':
 
     # 更新 股票和etf备选列表
     utils.updateData()
+
+    # 更新 数据库内数据
+    database.update_stock_daily_data()
+    database.update_etf_daily_data()
+
 
     # 当然开放式基金更新
     # fund_open_fund_rank_em_df = ak.fund_open_fund_rank_em(symbol="全部")
