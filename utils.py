@@ -184,9 +184,9 @@ def showAllETF(filename):
 
 # 更新数据文件 股票列表  etf列表
 def fetch_etf_sina():
-    """抓取沪深基金etf并保存在表格中  新浪"""
+    """抓取沪深基金场内etf并保存在表格中  新浪"""
     etf = ak.fund_etf_category_sina(symbol="ETF基金")
-    etf.to_csv("etf_sina_list.csv", encoding='utf-8-sig')
+    etf.to_csv("etf_A_list.csv", encoding='utf-8-sig')
 
 def fetch_etf_em():
     """抓取沪深基金etf并保存在表格中  东财"""
@@ -232,4 +232,6 @@ def updateData():
     for thread in threads:
         thread.join()
 
+if __name__ == '__main__':
 
+    updateData()

@@ -216,7 +216,7 @@ def findGoodETF(filename):
 
 if __name__ == '__main__':
 
-    findGoodETF('etf_sina_list.csv')
+    findGoodETF('etf_A_list.csv')
 
 
 

@@ -48,6 +48,15 @@ ETF_START_DATE = '2025-01-01'
 STOCK_START_DATE = '2026-01-01'
 
 
+def safe_float(val, default=0.0):
+    if val in (None, '', 'nan', 'NaN'):
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
 def get_mysql_connection(config):
     if MYSQL_DRIVER == 'pymysql':
         return pymysql.connect(
@@ -211,36 +220,36 @@ def _get_stock_data(code, start_date):
 def _import_data(conn, code, name, prefix, start_date, get_data_func):
     table_name = f'{prefix}_{code}'
     
-    print(f"\n{'='*50}")
-    print(f"处理: {code} - {name}")
-    print(f"目标表: {table_name}")
+    # print(f"\n{'='*50}")
+    # print(f"处理: {code} - {name}")
+    # print(f"目标表: {table_name}")
     
     if not _create_table_if_not_exists(conn, table_name, code, name, prefix):
         return 0
     
     last_date = _get_last_date(conn, table_name)
-    print(f"已有数据最新日期: {last_date if last_date else '无'}")
+    # print(f"已有数据最新日期: {last_date if last_date else '无'}")
     
     if last_date:
         last_date_obj = datetime.datetime.strptime(last_date, '%Y-%m-%d')
         fetch_start_date = (last_date_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        print(f"正在获取增量数据: {fetch_start_date} 至 今天")
+        # print(f"正在获取增量数据: {fetch_start_date} 至 今天")
         df, source = get_data_func(code, fetch_start_date)
     else:
-        print(f"正在获取全量数据: {start_date} 至 今天")
+        # print(f"正在获取全量数据: {start_date} 至 今天")
         df, source = get_data_func(code, start_date)
     
-    print(f"数据源: {source}")
+    # print(f"数据源: {source}")
     
     if source == 'bj':
-        print(f"跳过北交所股票: {code}")
+        # print(f"跳过北交所股票: {code}")
         return 0
     
     if df is None or len(df) == 0:
-        print(f"未获取到 {code} 的数据")
+        # print(f"未获取到 {code} 的数据")
         return 0
     
-    print(f"共获取到 {len(df)} 条数据")
+    # print(f"共获取到 {len(df)} 条数据")
     
     data_list = []
     for idx, row in df.iterrows():
@@ -251,21 +260,21 @@ def _import_data(conn, code, name, prefix, start_date, get_data_func):
             date_val = row.get('date', idx) if isinstance(idx, int) else idx
             date_str = date_val.strftime('%Y-%m-%d') if hasattr(date_val, 'strftime') else str(date_val)[:10]
         
-        open_val = float(row.get('open', 0))
-        close_val = float(row.get('close', 0))
-        high_val = float(row.get('high', 0))
-        low_val = float(row.get('low', 0))
-        volume_val = int(float(row.get('volume', 0)))
-        amount_val = float(row.get('amount', 0))
+        open_val = safe_float(row.get('open', 0))
+        close_val = safe_float(row.get('close', 0))
+        high_val = safe_float(row.get('high', 0))
+        low_val = safe_float(row.get('low', 0))
+        volume_val = int(safe_float(row.get('volume', 0)))
+        amount_val = safe_float(row.get('amount', 0))
         
         record = (date_str, open_val, close_val, high_val, low_val, volume_val, amount_val, code, name)
         data_list.append(record)
     
     if not data_list:
-        print("没有新增数据需要导入")
+        # print("没有新增数据需要导入")
         return 0
     
-    print(f"准备导入 {len(data_list)} 条新数据")
+    # print(f"准备导入 {len(data_list)} 条新数据")
     
     if prefix == 'etf':
         code_col = 'etf_code'
@@ -294,7 +303,7 @@ def _import_data(conn, code, name, prefix, start_date, get_data_func):
         conn.commit()
         rows_inserted = cursor.rowcount
         cursor.close()
-        print(f"成功导入 {rows_inserted} 条数据")
+        # print(f"成功导入 {rows_inserted} 条数据")
         return rows_inserted
     except Exception as e:
         conn.rollback()
@@ -313,14 +322,7 @@ def update_etf_daily_data():
             - new_etfs: 本次新增的ETF代码列表
             - removed_etfs: 已从列表移除但保留数据的ETF代码列表
     """
-    print("=" * 60)
-    print("ETF日线数据导入MySQL工具")
-    print("=" * 60)
-    print(f"开始日期: {ETF_START_DATE}")
-    print(f"ETF列表文件: {ETF_LIST_FILE}")
-    print(f"数据库: {ETF_MYSQL_CONFIG['host']}:{ETF_MYSQL_CONFIG['port']}/{ETF_MYSQL_CONFIG['database']}")
-    print("数据来源: akshare fund_etf_hist_sina (优先) / Ashare (备用)")
-    print("=" * 60)
+    print(f"ETF日线数据导入 - 日期:{ETF_START_DATE}, 文件:{ETF_LIST_FILE}, DB:{ETF_MYSQL_CONFIG['host']}/{ETF_MYSQL_CONFIG['database']}")
     
     etf_list = _load_list(ETF_LIST_FILE)
     if not etf_list:
@@ -397,14 +399,7 @@ def update_stock_daily_data():
             - new_stocks: 本次新增的股票代码列表
             - removed_stocks: 已从列表移除但保留数据的股票代码列表
     """
-    print("=" * 60)
-    print("股票日线数据导入MySQL工具")
-    print("=" * 60)
-    print(f"开始日期: {STOCK_START_DATE}")
-    print(f"股票列表文件: {STOCK_LIST_FILE}")
-    print(f"数据库: {STOCK_MYSQL_CONFIG['host']}:{STOCK_MYSQL_CONFIG['port']}/{STOCK_MYSQL_CONFIG['database']}")
-    print("数据来源: baostock")
-    print("=" * 60)
+    print(f"股票日线数据导入 - 日期:{STOCK_START_DATE}, 文件:{STOCK_LIST_FILE}, DB:{STOCK_MYSQL_CONFIG['host']}/{STOCK_MYSQL_CONFIG['database']}")
     
     if bs is None:
         print("baostock未安装，请先安装: pip install baostock")

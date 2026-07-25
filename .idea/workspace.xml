@@ -4,18 +4,30 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="update  20260615">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="新增etf 分析与 指标分析功能">
       <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyTT.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyTT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bankuaifenxi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/coreAnalysis.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/database.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/daybacktest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/etf_analyzer.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyzeCoreETF_DayScore.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/etf_core_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/etf_core_list.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/etf_open_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/etf_open_list.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf_sina_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/etf_sina_list.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/etf_sina_list.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/findETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/findTrend.py" beforeDir="false" afterPath="$PROJECT_DIR$/findTrend.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/quicksearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/quicksearch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/moneyflow.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/quanttest.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stockFinancial.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/stock_A_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/stock_A_list.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/weekReview.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +78,7 @@
     "Python.MyTT.executor": "Debug",
     "Python.PBroker.executor": "Run",
     "Python.PyBroker.executor": "Run",
+    "Python.analyzeCoreETF_DayScore.executor": "Debug",
     "Python.bankuaifenxi.executor": "Run",
     "Python.baostock.executor": "Debug",
     "Python.bg.executor": "Debug",
@@ -74,13 +87,14 @@
     "Python.conceptreview.executor": "Debug",
     "Python.coreAnalysis.executor": "Run",
     "Python.dailyreview.executor": "Run",
+    "Python.database.executor": "Debug",
     "Python.daybacktest.executor": "Debug",
     "Python.etf.executor": "Debug",
     "Python.etf_analyzer.executor": "Debug",
     "Python.etf_to_mysql.executor": "Debug",
     "Python.findETF.executor": "Debug",
     "Python.findStock.executor": "Debug",
-    "Python.findTrend.executor": "Run",
+    "Python.findTrend.executor": "Debug",
     "Python.findbottom.executor": "Debug",
     "Python.findcross.executor": "Debug",
     "Python.main.executor": "Debug",
@@ -88,6 +102,8 @@
     "Python.quant.executor": "Run",
     "Python.quanttest.executor": "Run",
     "Python.quicksearch.executor": "Debug",
+    "Python.realtimeCoreETF.executor": "Run",
+    "Python.realtimeETF.executor": "Debug",
     "Python.run.executor": "Run",
     "Python.stockFinancial.executor": "Debug",
     "Python.stock_basic_update.executor": "Run",
@@ -311,7 +327,15 @@
       <option name="project" value="LOCAL" />
       <updated>1781505072927</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="新增etf 分析与 指标分析功能">
+      <option name="closed" value="true" />
+      <created>1784388041093</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1784388041094</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -342,7 +366,8 @@
     <MESSAGE value="update  20260318&#10;修正了一下部分函数&#10;修正了代码结构" />
     <MESSAGE value="update  20260517" />
     <MESSAGE value="update  20260615" />
-    <option name="LAST_COMMIT_MESSAGE" value="update  20260615" />
+    <MESSAGE value="新增etf 分析与 指标分析功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="新增etf 分析与 指标分析功能" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

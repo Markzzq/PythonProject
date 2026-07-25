@@ -157,9 +157,16 @@ def VR(CLOSE,VOL,M1=26):                           #VR容量比率
     return SUM(IF(CLOSE > LC, VOL, 0), M1) / SUM(IF(CLOSE <= LC, VOL, 0), M1) * 100
 
 def EMV(HIGH,LOW,VOL,N=14,M=9):                     #简易波动指标 
-    VOLUME=MA(VOL,N)/VOL;       MID=100*(HIGH+LOW-REF(HIGH+LOW,1))/(HIGH+LOW)
-    EMV=MA(MID*VOLUME*(HIGH-LOW)/MA(HIGH-LOW,N),N);    MAEMV=MA(EMV,M)
-    return EMV,MAEMV
+    VOLUME = MA(VOL, N) / np.where(VOL == 0, 1, VOL)
+    mid_denominator = HIGH + LOW
+    mid_denominator = np.where(mid_denominator == 0, 1, mid_denominator)
+    MID = 100 * (HIGH + LOW - REF(HIGH + LOW, 1)) / mid_denominator
+    hl_range = HIGH - LOW
+    hl_ma = MA(hl_range, N)
+    hl_ma = np.where(hl_ma == 0, 1, hl_ma)
+    EMV = MA(MID * VOLUME * hl_range / hl_ma, N)
+    MAEMV = MA(EMV, M)
+    return EMV, MAEMV
 
 
 def DPO(CLOSE,M1=20, M2=10, M3=6):                  #区间震荡线

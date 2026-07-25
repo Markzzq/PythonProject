@@ -871,5 +871,5 @@ if __name__ == '__main__':
     #
     # utils.showAllStock('2025-10-22_bottom_stock.csv')
 
-    # reviewETF('etf_sina_list.csv')
+    # reviewETF('etf_A_list.csv')
 

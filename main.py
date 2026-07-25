@@ -19,7 +19,7 @@ import baostock as bs
 
 import utils
 import database
-import coreAnalysis
+import analyzeCoreStock
 # 股市行情数据获取和作图 -2
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare
 from MyTT import *  # myTT麦语言工具函数指标库  https://github.com/mpquant/MyTT
@@ -33,7 +33,7 @@ from numba.core.typing.typeof import typeof_numpy_random_bitgen
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-from coreAnalysis import coreSearch
+from analyzeCoreStock import coreSearch
 
 START_DATE = '2025-03-13'
 END_DATE = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -105,9 +105,10 @@ if __name__ == '__main__':
     # 更新 股票和etf备选列表
     utils.updateData()
 
-    # 更新 数据库内数据
-    database.update_stock_daily_data()
-    database.update_etf_daily_data()
+    # 更新 数据库内数据   不用每天更新
+    # database.update_stock_daily_data()
+    # database.update_etf_daily_data()
+
 
 
     # 当然开放式基金更新
