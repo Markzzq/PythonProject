@@ -171,6 +171,7 @@ def calculate_score(n, indicators, close, volume):
     scores = {}
 
     # ============== KDJ 评分 ==============
+    # 正向因子：J/K/D值越低，处于超卖区，股票价格越低，得分越低，信号偏向买入
     score_kdj = 0
     j = indicators['kdj_j'][-1]
     k = indicators['kdj_k'][-1]
@@ -198,6 +199,7 @@ def calculate_score(n, indicators, close, volume):
     scores['KDJ'] = score_kdj
 
     # ============== RSI 评分 ==============
+    # 正向因子：RSI值越低，处于超卖区，股票价格越低，得分越低，信号偏向买入
     score_rsi = 0
     rsi6_val = indicators['rsi6'][-1]
     rsi12_val = indicators['rsi12'][-1]
@@ -219,6 +221,7 @@ def calculate_score(n, indicators, close, volume):
     scores['RSI'] = score_rsi
 
     # ============== MACD 评分 ==============
+    # 正向因子：DIF/DEA/MACD值越低，下跌趋势越强，股票价格越低，得分越低，信号偏向买入
     score_macd = 0
     dif = indicators['dif_macd'][-1]
     dea_val = indicators['dea'][-1]
@@ -264,6 +267,8 @@ def calculate_score(n, indicators, close, volume):
     scores['MACD'] = score_macd
 
     # ============== 均线评分 ==============
+    # 趋势因子：均线多头排列（ma5>ma10>ma20>ma30）表示上涨趋势，得分越高，信号偏向买入
+    # 均线空头排列表示下跌趋势，得分越低，信号偏向卖出
     score_ma = 0
     ma5_val = indicators['ma5'][-1]
     ma10_val = indicators['ma10'][-1]
@@ -303,6 +308,8 @@ def calculate_score(n, indicators, close, volume):
     scores['均线'] = score_ma
 
     # ============== 布林带评分 ==============
+    # 正向因子：价格在布林带下轨附近（price_position低），股票价格越低，得分越低，信号偏向买入
+    # 价格在布林带上轨附近（price_position高），股票价格越高，得分越高，信号偏向卖出
     score_boll = 0
     boll_width = indicators['boll_upper'][-1] - indicators['boll_lower'][-1]
     if boll_width > 0:
@@ -315,6 +322,7 @@ def calculate_score(n, indicators, close, volume):
     scores['布林带'] = score_boll
 
     # ============== CCI 评分 ==============
+    # 正向因子：CCI值越低（<-100），处于超卖区，股票价格越低，得分越低，信号偏向买入
     score_cci = 0
     cci_val = indicators['cci'][-1]
     score_cci += cci_val * 0.05
@@ -330,6 +338,8 @@ def calculate_score(n, indicators, close, volume):
     scores['CCI'] = score_cci
 
     # ============== WR 评分 ==============
+    # 反向因子：WR值越低（接近-100，超卖区），股票价格越低，但得分越高，信号偏向卖出
+    # 注：代码使用(50-wr_val)*0.1计算，wr_val越低得分越高，与正向因子逻辑相反
     score_wr = 0
     wr_val = indicators['wr'][-1]
     score_wr += (50 - wr_val) * 0.1
@@ -345,6 +355,8 @@ def calculate_score(n, indicators, close, volume):
     scores['WR'] = score_wr
 
     # ============== DMI 评分 ==============
+    # 趋势因子：PDI>MDI表示上涨趋势，得分越高，信号偏向买入；MDI>PDI表示下跌趋势，得分越低，信号偏向卖出
+    # ADX值越高趋势越强，ADX<20表示趋势较弱
     score_dmi = 0
     pdi_val = indicators['pdi'][-1]
     mdi_val = indicators['mdi'][-1]
@@ -362,6 +374,8 @@ def calculate_score(n, indicators, close, volume):
     scores['DMI'] = score_dmi
 
     # ============== ATR 评分 ==============
+    # 波动性因子：ATR值反映价格波动幅度，非直接多空因子
+    # ATR高于均值表示波动加大，可能伴随趋势加速或反转
     score_atr = 0
     atr_val = indicators['atr'][-1]
     if n >= 20:
@@ -373,6 +387,8 @@ def calculate_score(n, indicators, close, volume):
     scores['ATR'] = score_atr
 
     # ============== 量能评分 ==============
+    # 正向因子：成交量/OBV/MFI值越低，量能萎缩，股票价格越低，得分越低，信号偏向买入
+    # MFI低于30为超卖，高于70为超买
     score_volume = 0
     if n >= 5:
         vol5 = to_numpy(MA(volume, 5))
@@ -400,6 +416,8 @@ def calculate_score(n, indicators, close, volume):
     scores['量能'] = score_volume
 
     # ============== 情绪评分 ==============
+    # 正向因子：PSY/VR/AR/BR值越低，市场情绪低迷，股票价格越低，得分越低，信号偏向买入
+    # PSY低于25为超卖，高于75为超买；VR低于40为超卖，高于350为超买
     score_sentiment = 0
     psy_val = indicators['psy'][-1]
     score_sentiment += (psy_val - 50) * 0.2
@@ -415,6 +433,8 @@ def calculate_score(n, indicators, close, volume):
     scores['情绪'] = score_sentiment
 
     # ============== 动量评分 ==============
+    # 正向因子：MTM/ROC/TRIX值越低，下跌动量越强，股票价格越低，得分越低，信号偏向买入
+    # TRIX金叉（TRIX>TRMA）表示上涨信号，死叉表示下跌信号
     score_momentum = 0
     mtm_val = indicators['mtm'][-1]
     score_momentum += mtm_val * 0.1
@@ -429,6 +449,8 @@ def calculate_score(n, indicators, close, volume):
     scores['动量'] = score_momentum
 
     # ============== 价格趋势评分 ==============
+    # 趋势因子：综合价格走势判断趋势方向，上涨天数越多、涨幅越大，得分越高，信号偏向卖出
+    # 价格接近历史低点（bias_low<0.2），得分越低，信号偏向买入
     score_price = 0
 
     up_days = calculate_continuous_days(close, lambda x, y: x > y)
@@ -467,15 +489,15 @@ def calculate_score(n, indicators, close, volume):
 
 def get_signal(total_score):
     if total_score >= 50:
-        return '强烈买入'
+        return '加仓'
     elif total_score >= 20:
-        return '买入'
+        return '逐步建仓'
     elif total_score >= -10:
-        return '持仓'
+        return '持有不动'
     elif total_score >= -30:
-        return '卖出'
+        return '逐步减仓'
     else:
-        return '强烈卖出'
+        return '减仓'
 
 
 ## ETF筛选分析 - 抓取表现好的ETF（7日最佳、30日最佳、反转信号、创新高）
@@ -571,6 +593,7 @@ def updateETFScoreFile(dfDailyScore, etf_list_file):
         df_original = pd.read_csv(etf_list_file)
 
         score_dict = dfDailyScore.set_index('代码')['综合评分'].to_dict()
+        signal_dict = dfDailyScore.set_index('代码')['综合信号'].to_dict()
 
         if END_DATE in df_original.columns:
             df_original[END_DATE] = df_original['代码'].map(score_dict)
@@ -578,6 +601,9 @@ def updateETFScoreFile(dfDailyScore, etf_list_file):
         else:
             df_original[END_DATE] = df_original['代码'].map(score_dict)
             print(f"已将 {END_DATE} 列追加到 {etf_list_file}")
+
+        signal_col_name = f"{END_DATE}_信号"
+        df_original[signal_col_name] = df_original['代码'].map(signal_dict)
 
         df_original.to_csv(etf_list_file, encoding="utf-8-sig", index=False)
 

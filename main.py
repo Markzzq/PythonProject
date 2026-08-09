@@ -18,7 +18,7 @@ import pandas as pd
 import baostock as bs
 
 import utils
-import database
+import updateDatabase
 import analyzeCoreStock
 # 股市行情数据获取和作图 -2
 from Ashare import *  # 股票数据库    https://github.com/mpquant/Ashare

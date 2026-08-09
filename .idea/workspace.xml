@@ -4,30 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="新增etf 分析与 指标分析功能">
+    <list default="true" id="463b4e58-0917-4cc5-baa1-6a7160330996" name="更改" comment="0725 更新 调整文件名称结构 新增实时分析入口 新增etf评分机制">
+      <change afterPath="$PROJECT_DIR$/dist/monitorETF.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyTT.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyTT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bankuaifenxi.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/coreAnalysis.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/database.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/daybacktest.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf_analyzer.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyzeCoreETF_DayScore.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyzeCoreETF_DayScore.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyzeCoreETF_DayScore.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concept_ths_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/concept_ths_list.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/etf_core_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/etf_core_list.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/etf_open_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/etf_open_list.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/etf_sina_list.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/findETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/findETF.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/findTrend.py" beforeDir="false" afterPath="$PROJECT_DIR$/findTrend.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/moneyflow.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/quanttest.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/realtimeCoreETF.py" beforeDir="false" afterPath="$PROJECT_DIR$/realtimeCoreETF.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stockFinancial.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/stock_A_list.csv" beforeDir="false" afterPath="$PROJECT_DIR$/stock_A_list.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/weekReview.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/updateDatabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/updateDatabase.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,6 +71,7 @@
     "Python.PBroker.executor": "Run",
     "Python.PyBroker.executor": "Run",
     "Python.analyzeCoreETF_DayScore.executor": "Debug",
+    "Python.analyzeCoreStock_DayScore.executor": "Debug",
     "Python.bankuaifenxi.executor": "Run",
     "Python.baostock.executor": "Debug",
     "Python.bg.executor": "Debug",
@@ -102,16 +95,18 @@
     "Python.quant.executor": "Run",
     "Python.quanttest.executor": "Run",
     "Python.quicksearch.executor": "Debug",
-    "Python.realtimeCoreETF.executor": "Run",
+    "Python.realtimeCoreETF.executor": "Debug",
     "Python.realtimeETF.executor": "Debug",
     "Python.run.executor": "Run",
     "Python.stockFinancial.executor": "Debug",
+    "Python.stock_basic_to_mysql.executor": "Debug",
     "Python.stock_basic_update.executor": "Run",
     "Python.stock_daily_update.executor": "Run",
     "Python.stock_to_mysql.executor": "Debug",
     "Python.te.executor": "Debug",
     "Python.test.executor": "Debug",
     "Python.updateData.executor": "Debug",
+    "Python.updateDatabase.executor": "Debug",
     "Python.utils.executor": "Debug",
     "Python.weekreview.executor": "Debug",
     "Python.word2markdon.executor": "Debug",
@@ -335,7 +330,15 @@
       <option name="project" value="LOCAL" />
       <updated>1784388041094</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="0725 更新 调整文件名称结构 新增实时分析入口 新增etf评分机制">
+      <option name="closed" value="true" />
+      <created>1784963520015</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1784963520017</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -367,7 +370,8 @@
     <MESSAGE value="update  20260517" />
     <MESSAGE value="update  20260615" />
     <MESSAGE value="新增etf 分析与 指标分析功能" />
-    <option name="LAST_COMMIT_MESSAGE" value="新增etf 分析与 指标分析功能" />
+    <MESSAGE value="0725 更新 调整文件名称结构 新增实时分析入口 新增etf评分机制" />
+    <option name="LAST_COMMIT_MESSAGE" value="0725 更新 调整文件名称结构 新增实时分析入口 新增etf评分机制" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

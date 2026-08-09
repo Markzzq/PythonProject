@@ -1,11 +1,21 @@
 # MyTT 麦语言-通达信-同花顺指标实现    https://github.com/mpquant/MyTT
 # V2.1 2021-6-6 新增 BARSLAST函数
 # V2.2 2021-6-8 新增 SLOPE,FORCAST线性回归，和回归预测函数
-  
+# V2.3 优化版：safe_divide零除保护、SMA_FAST向量化、ROLLING_SLOPE全序列斜率
+ 
 import numpy as np
 import pandas as pd
 
-#------------------ 0级：核心工具函数 --------------------------------------------      
+#------------------ 0级：核心工具函数 --------------------------------------------
+def safe_divide(numerator, denominator, fill_value=np.nan):
+    """安全除法：分母为0或NaN时返回fill_value，避免除零警告"""
+    denominator = np.asarray(denominator, dtype=np.float64)
+    numerator = np.asarray(numerator, dtype=np.float64)
+    valid = (denominator != 0) & np.isfinite(denominator)
+    result = np.full_like(numerator, fill_value, dtype=np.float64)
+    result[valid] = numerator[valid] / denominator[valid]
+    return result
+
 def RD(N,D=3):   return np.round(N,D)        #四舍五入取3位小数 
 def RET(S,N=1):  return np.array(S)[-N]      #返回序列倒数第N个值,默认返回最后一个
 def ABS(S):      return np.abs(S)            #返回N的绝对值
@@ -39,19 +49,66 @@ def LLV(S,N):                           # LLV(C, 5)  # 最近5天收盘最低价
 def EMA(S,N):         #指数移动平均,为了精度 S>4*N  EMA至少需要120周期       
     return pd.Series(S).ewm(span=N, adjust=False).mean().values    
 
-def SMA(S, N, M=1):   #中国式的SMA,至少需要120周期才精确         
-    K = pd.Series(S).rolling(N).mean()    #先求出平均值 (下面如果有不用循环的办法，能提高性能，望告知)
-    for i in range(N+1, len(S)):  K[i] = (M * S[i] + (N -M) * K[i-1]) / N  # 因为要取K[i-1]，所以 range(N+1, len(S))        
+def SMA(S, N, M=1):
+    """中国式SMA（Python for-loop实现，兼容旧版）"""
+    K = pd.Series(S).rolling(N).mean()
+    for i in range(N+1, len(S)):  K[i] = (M * S[i] + (N -M) * K[i-1]) / N
+    return K
+
+def SMA_FAST(S, N, M=1):
+    """中国式SMA（向量化实现，大幅提升性能）
+    使用scipy.signal.lfilter模拟IIR滤波: y[i] = (M/N)*x[i] + (1-M/N)*y[i-1]
+    """
+    try:
+        from scipy.signal import lfilter
+    except ImportError:
+        return SMA(S, N, M)
+    S = np.asarray(S, dtype=np.float64)
+    if len(S) <= N:
+        return SMA(S, N, M)
+    K = np.full_like(S, np.nan, dtype=np.float64)
+    K[:N] = pd.Series(S).rolling(N).mean().values[:N]
+    a_coeff = M / N
+    b_coeff = 1 - a_coeff
+    b = np.array([a_coeff])
+    a = np.array([1.0, -b_coeff])
+    zi = K[N-1] * np.array([1.0])
+    filtered, _ = lfilter(b, a, S[N:], zi=zi)
+    K[N:] = filtered
     return K
 
 def AVEDEV(S,N):      #平均绝对偏差  (序列与其平均值的绝对差的平均值)   
     avedev=pd.Series(S).rolling(N).apply(lambda x: (np.abs(x - x.mean())).mean())    
     return avedev.values
 
-def SLOPE(S,N,RS=False):               #返S序列N周期回线性回归斜率 (默认只返回斜率,不返回整个直线序列)
-    M=pd.Series(S[-N:]);   poly = np.polyfit(M.index, M.values,deg=1);    Y=np.polyval(poly, M.index); 
-    if RS: return Y[1]-Y[0],Y
+def SLOPE(S, N, RS=False):
+    """返回S序列末尾N周期线性回归斜率 (默认只返回最后一个斜率值)"""
+    M = pd.Series(S[-N:])
+    poly = np.polyfit(M.index, M.values, deg=1)
+    Y = np.polyval(poly, M.index)
+    if RS: return Y[1]-Y[0], Y
     return Y[1]-Y[0]
+
+def ROLLING_SLOPE(S, N):
+    """返回S序列每N周期线性回归斜率的全序列 (滚动窗口)
+    - 前N-1个位置为NaN
+    - 采用预计算x_demean + 向量化点积，效率远高于逐窗口polyfit
+    """
+    S = np.asarray(S, dtype=np.float64)
+    out = np.full(len(S), np.nan, dtype=np.float64)
+    if len(S) < N:
+        return out
+    x = np.arange(N, dtype=np.float64)
+    x_mean = x.mean()
+    x_demean = x - x_mean
+    denom = np.dot(x_demean, x_demean)
+    if denom == 0:
+        return out
+    for i in range(N - 1, len(S)):
+        y = S[i - N + 1 : i + 1]
+        y_mean = y.mean()
+        out[i] = np.dot(x_demean, y - y_mean) / denom
+    return out
 
   
 #------------------   1级：应用层函数(通过0级核心函数实现） ----------------------------------
@@ -91,23 +148,25 @@ def MACD(CLOSE,SHORT=12,LONG=26,M=9):            # EMA的关系，S取120日，�
     return RD(DIF),RD(DEA),RD(MACD)
 
 def KDJ(CLOSE,HIGH,LOW, N=9,M1=3,M2=3):         # KDJ指标
-    RSV = (CLOSE - LLV(LOW, N)) / (HHV(HIGH, N) - LLV(LOW, N)) * 100
+    RSV = 100 * safe_divide(CLOSE - LLV(LOW, N), HHV(HIGH, N) - LLV(LOW, N), fill_value=50.0)
     K = EMA(RSV, (M1*2-1));    D = EMA(K,(M2*2-1));        J=K*3-D*2
     return K, D, J
 
 def RSI(CLOSE, N=24):      
     DIF = CLOSE-REF(CLOSE,1) 
-    return RD(SMA(MAX(DIF,0), N) / SMA(ABS(DIF), N) * 100)  
+    denom = SMA(ABS(DIF), N)
+    denom = np.where((denom == 0) | (~np.isfinite(denom)), 1.0, denom)
+    return RD(SMA(MAX(DIF,0), N) / denom * 100)  
 
 def WR(CLOSE, HIGH, LOW, N=10, N1=6):            #W&R 威廉指标
-    WR = (HHV(HIGH, N) - CLOSE) / (HHV(HIGH, N) - LLV(LOW, N)) * 100
-    WR1 = (HHV(HIGH, N1) - CLOSE) / (HHV(HIGH, N1) - LLV(LOW, N1)) * 100
+    WR = 100 * safe_divide(HHV(HIGH, N) - CLOSE, HHV(HIGH, N) - LLV(LOW, N), fill_value=50.0)
+    WR1 = 100 * safe_divide(HHV(HIGH, N1) - CLOSE, HHV(HIGH, N1) - LLV(LOW, N1), fill_value=50.0)
     return RD(WR), RD(WR1)
 
 def BIAS(CLOSE,L1=6, L2=12, L3=24):              # BIAS乖离率
-    BIAS1 = (CLOSE - MA(CLOSE, L1)) / MA(CLOSE, L1) * 100
-    BIAS2 = (CLOSE - MA(CLOSE, L2)) / MA(CLOSE, L2) * 100
-    BIAS3 = (CLOSE - MA(CLOSE, L3)) / MA(CLOSE, L3) * 100
+    BIAS1 = 100 * safe_divide(CLOSE - MA(CLOSE, L1), MA(CLOSE, L1))
+    BIAS2 = 100 * safe_divide(CLOSE - MA(CLOSE, L2), MA(CLOSE, L2))
+    BIAS3 = 100 * safe_divide(CLOSE - MA(CLOSE, L3), MA(CLOSE, L3))
     return RD(BIAS1), RD(BIAS2), RD(BIAS3)
 
 def BOLL(CLOSE,N=20, P=2):                       #BOLL指标，布林带    
@@ -137,8 +196,8 @@ def DMI(CLOSE,HIGH,LOW,M1=14,M2=6):               #动向指标：结果和同�
     HD = HIGH - REF(HIGH, 1);     LD = REF(LOW, 1) - LOW
     DMP = SUM(IF((HD > 0) & (HD > LD), HD, 0), M1)
     DMM = SUM(IF((LD > 0) & (LD > HD), LD, 0), M1)
-    PDI = DMP * 100 / TR;         MDI = DMM * 100 / TR
-    ADX = MA(ABS(MDI - PDI) / (PDI + MDI) * 100, M2)
+    PDI = 100 * safe_divide(DMP, TR);         MDI = 100 * safe_divide(DMM, TR)
+    ADX = MA(100 * safe_divide(ABS(MDI - PDI), PDI + MDI, fill_value=0.0), M2)
     ADXR = (ADX + REF(ADX, M2)) / 2
     return PDI, MDI, ADX, ADXR  
 
@@ -148,23 +207,21 @@ def TAQ(HIGH,LOW,N):                              #唐安奇通道交易指标�
 
 def TRIX(CLOSE,M1=12, M2=20):                      #三重指数平滑平均线
     TR = EMA(EMA(EMA(CLOSE, M1), M1), M1)
-    TRIX = (TR - REF(TR, 1)) / REF(TR, 1) * 100
+    TRIX = 100 * safe_divide(TR - REF(TR, 1), REF(TR, 1))
     TRMA = MA(TRIX, M2)
     return TRIX, TRMA
 
 def VR(CLOSE,VOL,M1=26):                           #VR容量比率
     LC = REF(CLOSE, 1)
-    return SUM(IF(CLOSE > LC, VOL, 0), M1) / SUM(IF(CLOSE <= LC, VOL, 0), M1) * 100
+    dn = SUM(IF(CLOSE <= LC, VOL, 0), M1)
+    return 100 * safe_divide(SUM(IF(CLOSE > LC, VOL, 0), M1), dn, fill_value=100.0)
 
 def EMV(HIGH,LOW,VOL,N=14,M=9):                     #简易波动指标 
-    VOLUME = MA(VOL, N) / np.where(VOL == 0, 1, VOL)
-    mid_denominator = HIGH + LOW
-    mid_denominator = np.where(mid_denominator == 0, 1, mid_denominator)
-    MID = 100 * (HIGH + LOW - REF(HIGH + LOW, 1)) / mid_denominator
+    VOLUME = safe_divide(MA(VOL, N), VOL, fill_value=1.0)
+    MID = 100 * safe_divide(HIGH + LOW - REF(HIGH + LOW, 1), HIGH + LOW, fill_value=0.0)
     hl_range = HIGH - LOW
     hl_ma = MA(hl_range, N)
-    hl_ma = np.where(hl_ma == 0, 1, hl_ma)
-    EMV = MA(MID * VOLUME * hl_range / hl_ma, N)
+    EMV = MA(MID * VOLUME * safe_divide(hl_range, hl_ma, fill_value=0.0), N)
     MAEMV = MA(EMV, M)
     return EMV, MAEMV
 
@@ -174,8 +231,8 @@ def DPO(CLOSE,M1=20, M2=10, M3=6):                  #区间震荡线
     return DPO, MADPO
 
 def BRAR(OPEN,CLOSE,HIGH,LOW,M1=26):                 #BRAR-ARBR 情绪指标  
-    AR = SUM(HIGH - OPEN, M1) / SUM(OPEN - LOW, M1) * 100
-    BR = SUM(MAX(0, HIGH - REF(CLOSE, 1)), M1) / SUM(MAX(0, REF(CLOSE, 1) - LOW), M1) * 100
+    AR = 100 * safe_divide(SUM(HIGH - OPEN, M1), SUM(OPEN - LOW, M1), fill_value=100.0)
+    BR = 100 * safe_divide(SUM(MAX(0, HIGH - REF(CLOSE, 1)), M1), SUM(MAX(0, REF(CLOSE, 1) - LOW), M1), fill_value=100.0)
     return AR, BR
 
 def DMA(CLOSE,N1=10,N2=50,M=10):                     #平行线差指标  
@@ -187,7 +244,7 @@ def MTM(CLOSE,N=12,M=6):                             #动量指标
     return MTM,MTMMA
 
 def ROC(CLOSE,N=12,M=6):                             #变动率指标
-    ROC=100*(CLOSE-REF(CLOSE,N))/REF(CLOSE,N);    MAROC=MA(ROC,M)
+    ROC=100*safe_divide(CLOSE-REF(CLOSE,N),REF(CLOSE,N));    MAROC=MA(ROC,M)
     return ROC,MAROC  
 
 #------------------   扩展指标函数(参考东方财富、论文标准公式) ------------------------------
@@ -197,7 +254,7 @@ def MFI(CLOSE,HIGH,LOW,VOL,N=14):                    #资金流量指标(MFI)
     MF=TP*VOL                                        #资金流量
     PMF=SUM(IF(TP>REF(TP,1),MF,0),N)                #正资金流量
     NMF=SUM(IF(TP<REF(TP,1),MF,0),N)                #负资金流量
-    MFI=100-PMF/(PMF+NMF)*100                        #资金流量指标
+    MFI=100-100*safe_divide(PMF,PMF+NMF,fill_value=0.5)   #资金流量指标
     return RD(MFI)
 
 def OBV(CLOSE,VOL):                                   #能量潮指标(OBV)
@@ -224,8 +281,7 @@ def CR(HIGH,LOW,OPEN,N=26,M1=10,M2=20,M3=40,M4=62): #带状能量指标(CR)
     MID=(HIGH+LOW+OPEN)/3                            #中间价
     up_sum=SUM(MAX(0,MID-REF(MID,1)),N)              #上涨力度和
     dn_sum=SUM(MAX(0,REF(MID,1)-MID),N)              #下跌力度和
-    dn_sum=np.where(dn_sum==0,1,dn_sum)              #分母为0时设为1
-    CR=up_sum/dn_sum*100
+    CR=100*safe_divide(up_sum,dn_sum,fill_value=100.0)
     MA1=MA(CR,M1); MA2=MA(CR,M2); MA3=MA(CR,M3); MA4=MA(CR,M4)
     return RD(CR),RD(MA1),RD(MA2),RD(MA3),RD(MA4)
 
@@ -244,14 +300,13 @@ def MIDPRICE(HIGH,LOW,N=14):                         #中间价指标(MIDPRICE)
     return MA((HIGH+LOW)/2,N)
 
 def VWAP(CLOSE,VOL,N=20):                            #成交量加权平均价(VWAP)
-    return SUM(CLOSE*VOL,N)/SUM(VOL,N)
+    return safe_divide(SUM(CLOSE*VOL,N),SUM(VOL,N),fill_value=CLOSE)
 
 def CMF(HIGH,LOW,CLOSE,VOL,N=20):                    #蔡金资金流(CMF)
     MF=(CLOSE-LOW)-(HIGH-CLOSE)                      #资金流
     range_val=HIGH-LOW                               #波动范围
-    range_val=np.where(range_val==0,1,range_val)     #平盘时设为1避免除零
-    MF=MF/range_val*VOL                              #资金流*成交量
-    return SUM(MF,N)/SUM(VOL,N)                      #累计资金流/累计成交量
+    MF=safe_divide(MF,range_val,fill_value=0.0)*VOL  #资金流*成交量
+    return safe_divide(SUM(MF,N),SUM(VOL,N),fill_value=0.0)  #累计资金流/累计成交量
 
 def EMACROSS(CLOSE,SHORT=12,LONG=26):                #EMA金叉死叉判断
     EMA_SHORT=EMA(CLOSE,SHORT)
@@ -264,7 +319,7 @@ def MACDCROSS(CLOSE,SHORT=12,LONG=26,M=9):           #MACD金叉死叉判断
     return CROSS(DIF,DEA)
 
 def VOLRATIO(VOL,N=5):                               #成交量比率
-    return VOL/MA(VOL,N)
+    return safe_divide(VOL, MA(VOL, N), fill_value=1.0)
 
 def PRICEVOLUME(CLOSE,VOL,N=14):                     #价量配合指标
     return SUM(IF(CLOSE>REF(CLOSE,1),VOL,0),N)/SUM(VOL,N)*100
