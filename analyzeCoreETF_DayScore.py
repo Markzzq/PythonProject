@@ -1,12 +1,68 @@
 """
-ETF 每日评分分析工具 v2.0
+ETF 每日评分分析工具 v3.0
 =======================
-升级内容：
-- 使用声明式打分引擎 (scoring_engine.py)
-- 市场状态自适应阈值 (market_regime.py)
-- ETF特有指标加分（折溢价率、资金流向、份额变化）
-- NaN柔性处理：单个指标缺失不压整只ETF
-- 买卖方向分离的Trend Bonus
+
+核心功能
+--------
+对数据库中每只 ETF 计算 30+ 技术指标，按文档化规则表打分，
+叠加市场状态自适应阈值与 ETF 特有指标（折溢价/资金流向/份额变化），
+最终输出「买入/卖出/不动」信号与综合评分。
+
+指标计算过程（数据流）
+----------------------
+1. 数据库读取原始行情 → get_etf_data()
+   - 列: date, open, high, low, close, volume, amount (+etf_code/etf_name)
+   - 统一小写列名、数值列转 float
+
+2. 计算全部技术指标 → calculate_indicators()
+   - 基于 MyTT 一次性算出 30+ 指标（见下方「指标一览表」）
+   - 结果以 df['指标名'] 追加到 DataFrame
+
+3. 提取指标最新值 → extract_indicator_values()
+   - 从最后一根 K 线提取各指标值，转成规则表约定的中文指标名
+   - 例: DIF 值 → 'MACD_DIF位置'; K/D 金叉 → 'MACD金叉死叉' (1/0/-1)
+
+4. 检测市场状态 → market_regime.detect_market_regime()
+   - 依据 ADX、MA60 斜率、价格偏离度、波动率
+   - 输出 regime(strong_bull/bull/range/bear/strong_bear)
+
+5. 按规则表打分 → scoring_engine.calculate_total_score()
+   - 配置来源为本文件 INDICATOR_RULES（规则表，见下方）
+   - 每条规则: 条件 → 信号(买入/卖出/不动) → 得分表达式
+   - NaN柔性: 单指标缺失只跳过该指标，不影响其余指标
+
+6. 趋势加成 → scoring_engine.calculate_trend_bonus()
+   - 上涨趋势+买入信号=顺势加分; 上涨趋势+卖出信号=逆势减分
+
+7. ETF特有指标打分 → get_etf_specific_indicators + score_etf_specific()
+   - 折溢价率 / 资金净流入 / 份额变化率
+
+8. 合成总分 + 信号判定
+   - final = 技术评分 + 趋势加成 + ETF特异得分
+   - 按自适应阈值判定: 加仓 / 逐步建仓 / 持有不动 / 逐步减仓 / 减仓
+
+指标一览表（计算方式 → 信号含义）
+---------------------------------
+MACD_DIF位置      DIF=EMA12-EMA26                  DIF>0偏多 / DIF<0偏空
+MACD金叉死叉      DIF上穿/下穿DEA                  金叉买入 / 死叉卖出
+MA5_MA10金叉死叉  MA5上穿/下穿MA10                 金叉买入 / 死叉卖出
+MA多头排列        MA5>MA10>MA20>MA60              多头排列买入 / 空头排列卖出
+价格vs MA20/60    收盘价偏离均线百分比             站上均线买入 / 跌破卖出
+RSI(14)           RSI(close,14)                   超卖<30买入 / 超买>70卖出
+KDJ_K位置         KDJ.K                           超卖<20买入 / 超买>80卖出
+KDJ金叉死叉       K上穿/下穿D                     金叉买入 / 死叉卖出
+WR(10)            威廉指标(取反后)                 超卖(-80)买入 / 超买(-20)卖出
+量比              当日量/5日均量                   放量>1.5买入 / 缩量<0.5卖出
+MFI资金流量        MFI(14)                         超卖<20买入 / 超买>80卖出
+OBV趋势           OBV 5日末值 vs 前值              上升买入 / 下降卖出
+布林带位置        (close-lower)/(upper-lower)      下轨<0.1买入 / 上轨>0.9卖出
+ATR波动率         当日振幅/20日ATR                 放量突破>1.5买入
+CCI(14)           CCI                            强势>100买入 / 超卖<-100买入
+ADX趋势强度        ADX                             趋势>25买入 / 疲弱<20卖出
+DMI方向           PDI-MDI                         PDI>MDI买入 / PDI<MDI卖出
+BIAS(6)           乖离率                           超跌<-5买入 / 超涨>5卖出
+
+规则表（INDICATOR_RULES）为唯一打分依据，修改此处即可调整策略。
 """
 
 import pandas as pd
@@ -205,6 +261,280 @@ def score_etf_specific(indicators):
         score += sub
 
     return {'score': round(score, 2), 'details': details}
+
+
+# ====================================================================
+# 指标打分规则表 INDICATOR_RULES（唯一打分依据）
+# ====================================================================
+# 每个指标的配置项说明:
+#   name:         指标名（与 extract_indicator_values 输出键一致）
+#   computation:  该指标的计算方式（人类可读说明）
+#   weight:       权重（影响得分占比，越大越重要）
+#   rules:        打分规则列表，按顺序匹配第一条命中的规则:
+#     - condition: 条件表达式，{value} 为指标当前值，如 "{value} > 0"
+#     - desc:      该条件对应的业务含义（写入输出，便于复盘）
+#     - signal:    信号方向 '买入' / '卖出' / '不动'
+#     - score:     得分表达式，支持数字、'max'、'min'、'max*0.8' 等
+#                  (max=+10 分, min=-10 分，最终得分 = 表达式值 × 权重 / 10)
+#
+# 权重设计原则（短线优先）:
+#   - 短线/领先指标（金叉死叉、超买超卖、量能变化）权重较高:
+#       MACD金叉死叉 3.5 / MA5_MA10金叉死叉 3 / KDJ金叉死叉 3 / RSI 2.5
+#       KDJ_K 2.5 / 量比 2.5 / 布林带 2.5 / CCI 2.5 / WR 2 / MFI 2
+#       OBV 2 / BIAS 2 / ATR 1.5
+#   - 滞后/趋势确认类指标权重调低（仅作方向参考，不主导打分）:
+#       MACD_DIF位置 1.5 / 价格vs MA20 1.5 / 价格vs MA60 1
+#       MA多头排列 1 / ADX 1 / DMI 1
+#   - 所有指标权重合计约 38.5，与默认阈值体系匹配。
+#
+# 说明: 修改本表即可调整打分策略，无需改动 scoring_engine。
+#       原 scoring_engine.INDICATOR_CONFIG 可由 build_engine_config() 自动生成。
+# ====================================================================
+INDICATOR_RULES = [
+    # ==================== 趋势类 ====================
+    {
+        'name': 'MACD_DIF位置',
+        'computation': 'DIF = EMA(close,12) - EMA(close,26)，即快慢线差值（滞后指标，低权重）',
+        'weight': 1.5,
+        'rules': [
+            {'condition': '{value} > 0', 'desc': 'DIF在零轴上方，中期趋势偏多', 'signal': '买入', 'score': 'max*0.8', 'bonus': 'confirm'},
+            {'condition': '{value} < 0', 'desc': 'DIF在零轴下方，中期趋势偏空', 'signal': '卖出', 'score': 'min*0.8', 'bonus': 'confirm'},
+        ],
+    },
+    {
+        'name': 'MACD金叉死叉',
+        'computation': 'DIF上穿DEA为金叉(=1)，DIF下穿DEA为死叉(=-1)，无穿越为0（领先信号，高权重）',
+        'weight': 3.5,
+        'rules': [
+            {'condition': '{value} == 1', 'desc': 'MACD金叉，动能转强', 'signal': '买入', 'score': 'max'},
+            {'condition': '{value} == -1', 'desc': 'MACD死叉，动能转弱', 'signal': '卖出', 'score': 'min'},
+        ],
+    },
+    {
+        'name': 'MA5_MA10金叉死叉',
+        'computation': 'MA5上穿MA10为金叉(=1)，下穿为死叉(=-1)，无穿越为0（短线信号，高权重）',
+        'weight': 3,
+        'rules': [
+            {'condition': '{value} == 1', 'desc': '短均线金叉，短线转强', 'signal': '买入', 'score': 'max*0.7'},
+            {'condition': '{value} == -1', 'desc': '短均线死叉，短线转弱', 'signal': '卖出', 'score': 'min*0.7'},
+        ],
+    },
+    {
+        'name': 'MA多头排列',
+        'computation': 'MA5/MA10/MA20/MA60 全多头(=1)/全空头(=-1)/部分排列(±0.5)/交织(0)（滞后指标，低权重）',
+        'weight': 1,
+        'rules': [
+            {'condition': '{value} >= 1', 'desc': '均线多头排列，趋势向上', 'signal': '买入', 'score': 'max*0.6'},
+            {'condition': '{value} <= -1', 'desc': '均线空头排列，趋势向下', 'signal': '卖出', 'score': 'min*0.6'},
+        ],
+    },
+    {
+        'name': '价格vs MA20',
+        'computation': '(收盘价 - MA20) / MA20 × 100，单位%（滞后指标，低权重）',
+        'weight': 1.5,
+        'rules': [
+            {'condition': '{value} > 1.0', 'desc': '价格明显站上MA20，偏强', 'signal': '买入', 'score': 'max*0.5'},
+            {'condition': '{value} < -1.0', 'desc': '价格明显跌破MA20，偏弱', 'signal': '卖出', 'score': 'min*0.5'},
+        ],
+    },
+    {
+        'name': '价格vs MA60',
+        'computation': '(收盘价 - MA60) / MA60 × 100，单位%（滞后指标，低权重）',
+        'weight': 1,
+        'rules': [
+            {'condition': '{value} > 1.0', 'desc': '价格明显站上MA60，中期偏强', 'signal': '买入', 'score': 'max*0.4'},
+            {'condition': '{value} < -1.0', 'desc': '价格明显跌破MA60，中期偏弱', 'signal': '卖出', 'score': 'min*0.4'},
+        ],
+    },
+
+    # ==================== 动量类 ====================
+    {
+        'name': 'RSI(14)',
+        'computation': 'RSI(close, 14)，衡量近期涨跌力度（短线超买超卖）',
+        'weight': 2.5,
+        'rules': [
+            {'condition': '{value} > 70', 'desc': 'RSI超买(>70)，短线过热', 'signal': '卖出', 'score': 'max*0.2'},
+            {'condition': '{value} < 30', 'desc': 'RSI超卖(<30)，短线超跌', 'signal': '买入', 'score': 'max*0.8'},
+            {'condition': '30 <= {value} <= 70', 'desc': 'RSI处于中性区间', 'signal': '不动', 'score': 'max*0.4'},
+        ],
+    },
+    {
+        'name': 'KDJ_K位置',
+        'computation': 'KDJ 的 K 值，衡量短线超买超卖',
+        'weight': 2.5,
+        'rules': [
+            {'condition': '{value} > 80', 'desc': 'KDJ超买(>80)，短线过热', 'signal': '卖出', 'score': 'max*0.2'},
+            {'condition': '{value} < 20', 'desc': 'KDJ超卖(<20)，短线超跌', 'signal': '买入', 'score': 'max*0.8'},
+        ],
+    },
+    {
+        'name': 'KDJ金叉死叉',
+        'computation': 'K上穿D为金叉(=1)，K下穿D为死叉(=-1)，无穿越为0（短线信号，高权重）',
+        'weight': 3,
+        'rules': [
+            {'condition': '{value} == 1', 'desc': 'KDJ金叉，短线转强', 'signal': '买入', 'score': 'max*0.6'},
+            {'condition': '{value} == -1', 'desc': 'KDJ死叉，短线转弱', 'signal': '卖出', 'score': 'min*0.6'},
+        ],
+    },
+    {
+        'name': 'WR(10)',
+        'computation': '威廉指标 WR(close,high,low,10)，提取时已取反：-WR（短线超买超卖）',
+        'weight': 2,
+        'rules': [
+            {'condition': '{value} < -80', 'desc': 'WR超卖区(原值>80)，短线超跌', 'signal': '买入', 'score': 'max*0.7'},
+            {'condition': '{value} > -20', 'desc': 'WR超买区(原值<20)，短线过热', 'signal': '卖出', 'score': 'min*0.7'},
+        ],
+    },
+
+    # ==================== 成交量类 ====================
+    {
+        'name': '量比',
+        'computation': '当日成交量 / 5日均量，衡量放量缩量（短线资金活跃度）',
+        'weight': 2.5,
+        'rules': [
+            {'condition': '{value} > 1.5', 'desc': '明显放量，资金活跃', 'signal': '买入', 'score': 'max*0.5'},
+            {'condition': '{value} < 0.5', 'desc': '明显缩量，人气低迷', 'signal': '卖出', 'score': 'min*0.5'},
+        ],
+    },
+    {
+        'name': 'MFI资金流量',
+        'computation': 'MFI(close,high,low,volume,14)，带成交量的RSI（短线资金强弱）',
+        'weight': 2,
+        'rules': [
+            {'condition': '{value} > 80', 'desc': 'MFI超买(>80)，资金过热', 'signal': '卖出', 'score': 'min*0.5'},
+            {'condition': '{value} < 20', 'desc': 'MFI超卖(<20)，资金超跌', 'signal': '买入', 'score': 'max*0.6'},
+        ],
+    },
+    {
+        'name': 'OBV趋势',
+        'computation': 'OBV能量潮，取最近5日末值较前值方向(+1/-1)（短线量能配合）',
+        'weight': 2,
+        'rules': [
+            {'condition': '{value} > 0', 'desc': 'OBV上升，量能配合上涨', 'signal': '买入', 'score': 'max*0.4'},
+            {'condition': '{value} < 0', 'desc': 'OBV下降，量能配合下跌', 'signal': '卖出', 'score': 'min*0.4'},
+        ],
+    },
+
+    # ==================== 波动类 ====================
+    {
+        'name': '布林带位置',
+        'computation': '(收盘价 - BOLL下轨) / (BOLL上轨 - BOLL下轨)，0~1（短线超买超卖）',
+        'weight': 2.5,
+        'rules': [
+            {'condition': '{value} <= 0.1', 'desc': '价格贴近下轨，超卖支撑', 'signal': '买入', 'score': 'max*0.6'},
+            {'condition': '{value} >= 0.9', 'desc': '价格贴近上轨，超买压力', 'signal': '卖出', 'score': 'min*0.6'},
+        ],
+    },
+    {
+        'name': 'ATR波动率',
+        'computation': '当日振幅(high-low) / 20日均ATR（短线波动/突破）',
+        'weight': 1.5,
+        'rules': [
+            {'condition': '{value} > 1.5', 'desc': '振幅明显放大，突破迹象', 'signal': '买入', 'score': 'max*0.3'},
+        ],
+    },
+    {
+        'name': 'CCI(14)',
+        'computation': 'CCI(close,high,low,14)，正值为强势（短线强弱）',
+        'weight': 2.5,
+        'rules': [
+            {'condition': '{value} > 100', 'desc': 'CCI进入强势区，趋势向上', 'signal': '买入', 'score': 'max*0.3'},
+            {'condition': '{value} < -100', 'desc': 'CCI超卖区，超跌反弹机会', 'signal': '买入', 'score': 'max*0.7'},
+        ],
+    },
+
+    # ==================== 趋势强度类 ====================
+    {
+        'name': 'ADX趋势强度',
+        'computation': 'ADX(close,high,low,14)，衡量趋势强度（滞后指标，低权重）',
+        'weight': 1,
+        'rules': [
+            {'condition': '{value} > 25', 'desc': 'ADX>25，趋势明确', 'signal': '买入', 'score': 'max*0.5'},
+            {'condition': '{value} < 20', 'desc': 'ADX<20，趋势疲弱', 'signal': '卖出', 'score': 'min*0.5'},
+        ],
+    },
+    {
+        'name': 'DMI方向',
+        'computation': 'PDI - MDI，正值为多方占优（滞后指标，低权重）',
+        'weight': 1,
+        'rules': [
+            {'condition': '{value} > 0', 'desc': '多方占优，方向向上', 'signal': '买入', 'score': 'max*0.5'},
+            {'condition': '{value} < 0', 'desc': '空方占优，方向向下', 'signal': '卖出', 'score': 'min*0.5'},
+        ],
+    },
+
+    # ==================== 乖离类 ====================
+    {
+        'name': 'BIAS(6)',
+        'computation': 'BIAS(close,6) = (close - MA6) / MA6 × 100（短线超买超卖）',
+        'weight': 2,
+        'rules': [
+            {'condition': '{value} > 5', 'desc': '正乖离过大，短线超涨', 'signal': '卖出', 'score': 'min*0.5'},
+            {'condition': '{value} < -5', 'desc': '负乖离过大，短线超跌', 'signal': '买入', 'score': 'max*0.6'},
+        ],
+    },
+]
+
+
+def build_engine_config(rule_table):
+    """
+    将文档化规则表 INDICATOR_RULES 转换为打分引擎所需的配置格式。
+    - signal 从中文('买入'/'卖出')映射为英文('buy'/'sell')，'不动' 不设信号
+    - 保证规则表是唯一打分依据，避免两处配置漂移
+    """
+    engine_config = []
+    for item in rule_table:
+        rules = []
+        for r in item['rules']:
+            rule = {
+                'condition': r['condition'],
+                'score': r['score'],
+            }
+            if r.get('signal') == '买入':
+                rule['signal'] = 'buy'
+            elif r.get('signal') == '卖出':
+                rule['signal'] = 'sell'
+            if r.get('bonus'):
+                rule['bonus'] = r['bonus']
+            rules.append(rule)
+        engine_config.append({
+            'name': item['name'],
+            'weight': item['weight'],
+            'rules': rules,
+        })
+    return engine_config
+
+
+def match_rule_signal(rule_table, indicator_values):
+    """
+    根据规则表判断每个指标当前触发哪个信号。
+    返回: {指标名: {'signal': '买入'/'卖出'/'不动'/'缺失', 'desc': 说明, 'value': 值}}
+    """
+    result = {}
+    for item in rule_table:
+        name = item['name']
+        value = indicator_values.get(name)
+        if value is None:
+            result[name] = {'signal': '缺失', 'desc': '数据缺失，不计分', 'value': None}
+            continue
+        matched = False
+        for r in item['rules']:
+            try:
+                condition = r['condition'].replace('{value}', str(value))
+                local_ns = {'abs': abs, 'max': max, 'min': min}
+                if eval(condition, {"__builtins__": {}}, local_ns):
+                    result[name] = {
+                        'signal': r.get('signal', '不动'),
+                        'desc': r.get('desc', ''),
+                        'value': value,
+                    }
+                    matched = True
+                    break
+            except Exception:
+                continue
+        if not matched:
+            result[name] = {'signal': '不动', 'desc': '处于中性区间，无明确信号', 'value': value}
+    return result
 
 
 ETF_MYSQL_CONFIG = {
@@ -488,10 +818,15 @@ def analyze_etf(df, etf_code=''):
     regime = regime_info.get('regime', 'range')
 
     # 3. 计算技术指标总分（自适应阈值 + NaN柔性处理）
+    #    打分规则唯一来源: 本文件 INDICATOR_RULES
     scoring_result = calculate_total_score(
         indicator_values,
+        indicator_config=build_engine_config(INDICATOR_RULES),
         market_regime=regime,
     )
+
+    # 3.1 按规则表输出每个指标的中文信号（买入/卖出/不动/缺失）
+    signal_detail = match_rule_signal(INDICATOR_RULES, indicator_values)
 
     # 诊断：当总分为0时，输出提取到的指标值和打分明细
     if scoring_result['total_score'] == 0.0:
@@ -547,11 +882,13 @@ def analyze_etf(df, etf_code=''):
     weighted_scores = {}
     for detail in scoring_result['details']:
         name = detail['name']
+        sig_info = signal_detail.get(name, {})
         weighted_scores[name] = {
             '原始得分': 0.0 if not detail['matched'] else round(detail['score'], 2),
             '权重': 1.0,
-            '加权得分': round(detail['score'], 2),
-            '信号': detail['signal'] or '持仓',
+            '加权得分': 0.0 if not detail['matched'] else round(detail['score'], 2),
+            '信号': sig_info.get('signal', '不动'),   # 中文信号: 买入/卖出/不动/缺失
+            '说明': sig_info.get('desc', ''),          # 该信号触发的业务含义
             '状态': detail['status'],
         }
 
@@ -591,6 +928,13 @@ def analyze_etf(df, etf_code=''):
         '信心度': scoring_result['confidence'],
         '有效指标数': f"{scoring_result['valid_count']}/{scoring_result['total_count']}",
         '缺失指标': scoring_result['missing_indicators'],
+        # ---- 中文信号汇总（依据 INDICATOR_RULES） ----
+        '买入信号数': sum(1 for v in signal_detail.values() if v['signal'] == '买入'),
+        '卖出信号数': sum(1 for v in signal_detail.values() if v['signal'] == '卖出'),
+        '不动信号数': sum(1 for v in signal_detail.values() if v['signal'] == '不动'),
+        '买入信号指标': [k for k, v in signal_detail.items() if v['signal'] == '买入'],
+        '卖出信号指标': [k for k, v in signal_detail.items() if v['signal'] == '卖出'],
+        '指标信号明细': signal_detail,
         '指标得分': weighted_scores,
     }
 
@@ -633,7 +977,13 @@ def analyze_all_etfs():
                 analysis_result = analyze_etf(df_with_indicators, code)
                 if analysis_result:
                     results.append(analysis_result)
+                    buy_list = analysis_result.get('买入信号指标', [])
+                    sell_list = analysis_result.get('卖出信号指标', [])
                     print(f"  分析完成: {analysis_result['ETF名称']} - 信号: {analysis_result['综合信号']} - 评分: {analysis_result['综合评分']} - 市场: {analysis_result['市场状态']}")
+                    if buy_list:
+                        print(f"    买入信号({len(buy_list)}): {'、'.join(buy_list)}")
+                    if sell_list:
+                        print(f"    卖出信号({len(sell_list)}): {'、'.join(sell_list)}")
                 else:
                     print(f"  数据不足，跳过")
             
@@ -652,30 +1002,22 @@ def analyze_all_etfs():
             row = {
                 'ETF名称': result['ETF名称'],
                 'ETF代码': result['ETF代码'],
-                '收盘价': result['收盘价'],
-                '成交量': result['成交量'],
-                '综合评分': result['综合评分'],
-                '技术评分': result.get('技术评分', 0),
-                '趋势加成': result.get('趋势加成', 0),
-                'ETF特异得分': result.get('ETF特异得分', 0),
-                '综合信号': result['综合信号'],
-                '市场状态': result.get('市场状态', 'unknown'),
-                '信心度': result.get('信心度', 0),
-                '有效指标数': result.get('有效指标数', '0/0'),
+                '总体判断': result['综合信号'],
+                '得分': result['综合评分'],
             }
             
+            # 各指标判断结果（买入/卖出/不动/缺失），依据 INDICATOR_RULES
             for indicator_name, indicator_data in result.get('指标得分', {}).items():
                 if indicator_name.startswith('_'):
                     continue
-                row[f'{indicator_name}加权得分'] = indicator_data.get('加权得分', '')
-                row[f'{indicator_name}信号'] = indicator_data.get('信号', '')
+                row[indicator_name] = indicator_data.get('信号', '')
             
             csv_rows.append(row)
         
         df_csv = pd.DataFrame(csv_rows)
         
-        df_summary = df_csv[['ETF名称', 'ETF代码', '收盘价', '综合评分', '技术评分', '趋势加成', 'ETF特异得分', '综合信号', '市场状态']].copy()
-        df_summary = df_summary.sort_values('综合评分', ascending=False)
+        df_summary = df_csv[['ETF名称', 'ETF代码', '总体判断', '得分']].copy()
+        df_summary = df_summary.sort_values('得分', ascending=False)
         
         print("\n" + "=" * 70)
         print("ETF指标分析汇总")
@@ -688,7 +1030,7 @@ def analyze_all_etfs():
         print(f"\n分析结果已保存至: {filename}")
         
         print("\n" + "=" * 70)
-        signal_counts = df_summary['综合信号'].value_counts()
+        signal_counts = df_summary['总体判断'].value_counts()
         print("信号分布统计:")
         for signal, count in signal_counts.items():
             print(f"  {signal}: {count} 个")
