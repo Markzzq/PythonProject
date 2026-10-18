@@ -7,5 +7,7 @@ __pycache__/
 *.csv
 database_update/logs/
 dist
+pe_ttm_low_percentile
+monitorETF.exe
 
 
